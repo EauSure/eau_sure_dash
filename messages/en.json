@@ -1,0 +1,123 @@
+{
+  "common": {
+    "save": "Save Changes",
+    "discard": "Discard",
+    "loading": "Loading...",
+    "unsavedChanges": "Unsaved Changes",
+    "allChangesSaved": "All Changes Saved"
+  },
+  "app": {
+    "title": "Water Monitor",
+    "subtitle": "IoT Platform"
+  },
+  "navigation": {
+    "overview": "Overview",
+    "wells": "Wells & Reservoirs",
+    "alerts": "Alerts",
+    "devices": "Device Management",
+    "gateway": "Gateway",
+    "signOut": "Sign Out"
+  },
+  "userMenu": {
+    "profile": "Profile",
+    "settings": "Settings",
+    "signOut": "Sign out"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "kpi": {
+      "waterStatus": "Water Status",
+      "activeAlerts": "Active Alerts",
+      "gatewaysOnline": "Gateways Online",
+      "avgBatteryLife": "Avg Battery Life",
+      "noWells": "No wells configured",
+      "noAlerts": "No alerts",
+      "noGateways": "No gateways configured",
+      "noData": "No data available"
+    },
+    "setup": {
+      "title": "System Setup Required",
+      "description": "Configure your IoT monitoring system to get started",
+      "noDevices": "No devices have been configured yet. To start monitoring water quality:",
+      "step1": "Deploy buoy sensor nodes to wells/reservoirs",
+      "step2": "Set up LoRaWAN gateways for network connectivity",
+      "step3": "Register devices in the system configuration",
+      "step4": "Calibrate pH and TDS sensors"
+    }
+  },
+  "profile": {
+    "title": "Profile",
+    "description": "Manage your account information and preferences",
+    "personalInfo": "Personal Information",
+    "personalInfoDescription": "Update your basic account details",
+    "fullName": "Full Name",
+    "fullNamePlaceholder": "Enter your full name",
+    "email": "Email Address",
+    "emailDescription": "Managed by your authentication provider",
+    "phone": "Phone Number",
+    "phonePlaceholder": "+1 (555) 000-0000",
+    "phoneDescription": "Used for SMS alerts and two-factor authentication",
+    "location": "Location",
+    "locationPlaceholder": "City, Country",
+    "locationDescription": "Helps personalize your experience",
+    "accountSettings": "Account Settings",
+    "accountSettingsDescription": "Additional account configuration",
+    "company": "Company/Organization",
+    "companyPlaceholder": "Your organization name",
+    "companyDescription": "Optional - for business accounts",
+    "role": "Role",
+    "roleDescription": "Your position or responsibility",
+    "roles": {
+      "admin": "System Administrator",
+      "operator": "Operator",
+      "viewer": "Viewer"
+    },
+    "actionBar": {
+      "unsavedMessage": "You have modified your profile. Save or discard changes to continue.",
+      "savedMessage": "Your profile is up to date."
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "description": "Manage your application preferences, notifications, and system units",
+    "tabs": {
+      "regional": "Regional",
+      "notifications": "Notifications",
+      "units": "Units"
+    },
+    "regional": {
+      "title": "Localization",
+      "description": "Configure timezone and language preferences for your account",
+      "timezone": "Timezone",
+      "timezoneDescription": "All timestamps will be displayed in this timezone",
+      "language": "Interface Language",
+      "languageDescription": "Select your preferred language"
+    },
+    "notifications": {
+      "title": "Alert Preferences",
+      "description": "Control how and when you receive system notifications",
+      "emailAlerts": "Email Alerts",
+      "emailAlertsDescription": "Receive email notifications for water quality alerts and device status changes",
+      "criticalOnly": "Critical Alerts Only",
+      "criticalOnlyDescription": "Only receive notifications for critical issues (fall detection, severe contamination)",
+      "dailySummary": "Daily Summary",
+      "dailySummaryDescription": "Get a daily email with system status, water quality metrics, and device health",
+      "maintenanceReminders": "Maintenance Reminders",
+      "maintenanceRemindersDescription": "Receive reminders for sensor calibration, anti-fouling cycles, and battery replacements"
+    },
+    "units": {
+      "title": "Measurement Units",
+      "description": "Configure display units for sensor readings and system metrics",
+      "temperature": "Temperature Scale",
+      "temperatureDescription": "Used for ambient and water temperature readings",
+      "distance": "Distance & Depth",
+      "distanceDescription": "Used for well depth and distance measurements",
+      "note": "Note:",
+      "noteText": "Water quality metrics (pH, TDS) are displayed in standard units regardless of these settings."
+    },
+    "actionBar": {
+      "unsavedMessage": "You have modified your settings. Save or discard changes to continue.",
+      "savedMessage": "Your settings are up to date."
+    }
+  }
+}

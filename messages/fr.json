@@ -1,0 +1,121 @@
+{
+  "common": {
+    "save": "Enregistrer",
+    "discard": "Annuler",
+    "loading": "Chargement...",
+    "unsavedChanges": "Modifications non enregistrées",
+    "allChangesSaved": "Toutes les modifications enregistrées"
+  },  "app": {
+    "title": "Surveillance de l'eau",
+    "subtitle": "Plateforme IoT"
+  },
+  "navigation": {
+    "overview": "Aperçu",
+    "wells": "Puits et réservoirs",
+    "alerts": "Alertes",
+    "devices": "Gestion des appareils",
+    "gateway": "Passerelle",
+    "signOut": "Se déconnecter"
+  },
+  "userMenu": {
+    "profile": "Profil",
+    "settings": "Paramètres",
+    "signOut": "Se déconnecter"
+  },
+  "dashboard": {
+    "title": "Tableau de bord",
+    "kpi": {
+      "waterStatus": "État de l'eau",
+      "activeAlerts": "Alertes actives",
+      "gatewaysOnline": "Passerelles en ligne",
+      "avgBatteryLife": "Durée de vie moyenne de la batterie",
+      "noWells": "Aucun puits configuré",
+      "noAlerts": "Aucune alerte",
+      "noGateways": "Aucune passerelle configurée",
+      "noData": "Aucune donnée disponible"
+    },
+    "setup": {
+      "title": "Configuration du système requise",
+      "description": "Configurez votre système de surveillance IoT pour commencer",
+      "noDevices": "Aucun appareil n'a encore été configuré. Pour commencer à surveiller la qualité de l'eau :",
+      "step1": "Déployer des nœuds de capteurs flottants dans les puits/réservoirs",
+      "step2": "Configurer des passerelles LoRaWAN pour la connectivité réseau",
+      "step3": "Enregistrer les appareils dans la configuration du système",
+      "step4": "Calibrer les capteurs de pH et TDS"
+    }
+  },
+  "profile": {
+    "title": "Profil",
+    "description": "Gérez les informations de votre compte et vos préférences",
+    "personalInfo": "Informations personnelles",
+    "personalInfoDescription": "Mettez à jour les détails de base de votre compte",
+    "fullName": "Nom complet",
+    "fullNamePlaceholder": "Entrez votre nom complet",
+    "email": "Adresse e-mail",
+    "emailDescription": "Géré par votre fournisseur d'authentification",
+    "phone": "Numéro de téléphone",
+    "phonePlaceholder": "+33 6 00 00 00 00",
+    "phoneDescription": "Utilisé pour les alertes SMS et l'authentification à deux facteurs",
+    "location": "Localisation",
+    "locationPlaceholder": "Ville, Pays",
+    "locationDescription": "Aide à personnaliser votre expérience",
+    "accountSettings": "Paramètres du compte",
+    "accountSettingsDescription": "Configuration supplémentaire du compte",
+    "company": "Entreprise/Organisation",
+    "companyPlaceholder": "Nom de votre organisation",
+    "companyDescription": "Optionnel - pour les comptes professionnels",
+    "role": "Rôle",
+    "roleDescription": "Votre poste ou responsabilité",
+    "roles": {
+      "admin": "Administrateur système",
+      "operator": "Opérateur",
+      "viewer": "Observateur"
+    },
+    "actionBar": {
+      "unsavedMessage": "Vous avez modifié votre profil. Enregistrez ou annulez les modifications pour continuer.",
+      "savedMessage": "Votre profil est à jour."
+    }
+  },  "settings": {
+    "title": "Paramètres",
+    "description": "Gérez vos préférences d'application, notifications et unités système",
+    "tabs": {
+      "regional": "Régional",
+      "notifications": "Notifications",
+      "units": "Unités"
+    },
+    "regional": {
+      "title": "Localisation",
+      "description": "Configurez vos préférences de fuseau horaire et de langue",
+      "timezone": "Fuseau horaire",
+      "timezoneDescription": "Tous les horodatages seront affichés dans ce fuseau horaire",
+      "language": "Langue de l'interface",
+      "languageDescription": "Sélectionnez votre langue préférée"
+    },
+    "notifications": {
+      "title": "Préférences d'alerte",
+      "description": "Contrôlez comment et quand vous recevez les notifications système",
+      "emailAlerts": "Alertes par e-mail",
+      "emailAlertsDescription": "Recevez des notifications par e-mail pour les alertes de qualité de l'eau et les changements d'état des appareils",
+      "criticalOnly": "Alertes critiques uniquement",
+      "criticalOnlyDescription": "Recevoir uniquement les notifications pour les problèmes critiques (détection de chute, contamination sévère)",
+      "dailySummary": "Résumé quotidien",
+      "dailySummaryDescription": "Recevez un e-mail quotidien avec l'état du système, les mesures de qualité de l'eau et la santé des appareils",
+      "maintenanceReminders": "Rappels de maintenance",
+      "maintenanceRemindersDescription": "Recevez des rappels pour l'étalonnage des capteurs, les cycles anti-encrassement et les remplacements de batterie"
+    },
+    "units": {
+      "title": "Unités de mesure",
+      "description": "Configurez les unités d'affichage pour les relevés de capteurs et les mesures système",
+      "temperature": "Échelle de température",
+      "temperatureDescription": "Utilisé pour les relevés de température ambiante et de l'eau",
+      "distance": "Distance et profondeur",
+      "distanceDescription": "Utilisé pour les mesures de profondeur de puits et de distance",
+      "note": "Remarque :",
+      "noteText": "Les mesures de qualité de l'eau (pH, TDS) sont affichées en unités standard quels que soient ces paramètres."
+    },
+    "actionBar": {
+      "unsavedMessage": "Vous avez modifié vos paramètres. Enregistrez ou annulez les modifications pour continuer.",
+      "savedMessage": "Vos paramètres sont à jour."
+    }
+  }
+}
