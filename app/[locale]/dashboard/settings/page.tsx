@@ -91,7 +91,7 @@ export default function SettingsPage() {
         temperature: 'celsius',
         distance: 'metric',
       },
-      language: 'en',
+      language: currentLocale,
     },
   });
 

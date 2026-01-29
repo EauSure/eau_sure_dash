@@ -52,6 +52,7 @@ export default function SignUpPage() {
         return;
       }
 
+      // Account created successfully, now sign in
       const result = await signIn('credentials', {
         redirect: false,
         email,
@@ -59,14 +60,15 @@ export default function SignUpPage() {
       });
 
       if (result?.error) {
-        setError('Account created but failed to sign in. Please try signing in.');
-      } else {
+        setError('Account created but failed to sign in. Please try signing in manually.');
+        setIsLoading(false);
+      } else if (result?.ok) {
+        // Successfully signed in, redirect to dashboard
         router.push('/dashboard');
         router.refresh();
       }
     } catch (error) {
       setError('An error occurred. Please try again.');
-    } finally {
       setIsLoading(false);
     }
   };

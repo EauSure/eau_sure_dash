@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { Geist, Geist_Mono } from "next/font/google";
 import Providers from "../providers";
 import { Toaster } from "@/components/ui/sonner";
-import { AnimatedBackground } from "@/components/animated-background";
+import { ParticlesBackground } from "@/components/ui/particles-background";
 import "../globals.css";
 
 const geistSans = Geist({
@@ -37,11 +37,13 @@ export default async function LocaleLayout({
 
   return (
     <html lang={locale} dir={dir} suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased overflow-hidden`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <NextIntlClientProvider locale={locale} messages={messages}>
           <Providers>
-            <AnimatedBackground />
-            {children}
+            <ParticlesBackground />
+            <div className="relative z-10 min-h-screen">
+              {children}
+            </div>
           </Providers>
           <Toaster />
         </NextIntlClientProvider>

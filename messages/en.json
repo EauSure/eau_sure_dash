@@ -16,6 +16,8 @@
     "alerts": "Alerts",
     "devices": "Device Management",
     "gateway": "Gateway",
+    "profile": "Profile",
+    "settings": "Settings",
     "signOut": "Sign Out"
   },
   "userMenu": {
