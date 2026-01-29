@@ -110,8 +110,8 @@
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/eau-pure-dashboard.git
-cd eau-pure-dashboard
+git clone https://github.com/EauSure/eau_pure_dash.git
+cd eau_pure_dash
 ```
 
 ### 2. Install Dependencies
@@ -163,7 +163,7 @@ npm start
 
 ### Deploy to Vercel (Recommended)
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/YOUR_USERNAME/eau-pure-dashboard)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/EauSure/eau_pure_dash)
 
 #### Manual Deployment
 
@@ -267,9 +267,31 @@ Contributions, issues, and feature requests are welcome!
 
 ---
 
+## ⭐ Show Your Support
+
+Give a ⭐️ if this project helped you!
+
+---
+
+## � Authors
+
+### 👤 **Adam Farjeoui**
+
+- 🌐 Website: [farjeoui-portfolio.vercel.app](https://farjeoui-portfolio.vercel.app)
+- 💻 Github: [@adam-dev-hub](https://github.com/adam-dev-hub)
+- 💼 LinkedIn: [@Adam Al Farjeoui](https://www.linkedin.com/in/adam-al-farjeoui)
+
+### 👤 **Med Rayen Trabelsi**
+
+- 🌐 Website: [trabelsimedrayen.tech](https://www.trabelsimedrayen.tech/)
+- 💻 Github: [@Mohamed Rayen Trabelsi](https://github.com/Mohamed-Rayen-Trabelsi)
+- 💼 LinkedIn: [@Mohamed Rayen Trabelsi](https://www.linkedin.com/in/mohamed-rayen-trabelsi)
+
+---
+
 ## 📧 Contact
 
-**Project Link:** [https://github.com/YOUR_USERNAME/eau-pure-dashboard](https://github.com/YOUR_USERNAME/eau-pure-dashboard)
+**Project Link:** [https://github.com/EauSure/eau_pure_dash](https://github.com/EauSure/eau_pure_dash)
 
 ---
 
