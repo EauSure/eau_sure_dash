@@ -24,7 +24,7 @@ git commit -m "Initial commit - Water monitoring dashboard"
 
 Then:
 1. Go to https://github.com/new
-2. Create a new repository named "eau-pure-dashboard" (or your choice)
+2. Create a new repository named "eau_sure_dash" (or your choice)
 3. **Don't** check any boxes (no README, no .gitignore)
 4. Click "Create repository"
 5. Copy the commands shown and run them:
@@ -78,7 +78,7 @@ git push -u origin main
 
 ### STEP 4: Update NEXTAUTH_URL (if needed)
 
-After deployment, Vercel will show your URL (e.g., `https://eau-pure-dashboard.vercel.app`)
+After deployment, Vercel will show your URL (e.g., `https://eau-sure-dash.vercel.app`)
 
 1. Go to your Vercel project
 2. Click "Settings" → "Environment Variables"

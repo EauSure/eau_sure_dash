@@ -196,7 +196,7 @@ npm start
 ## 📁 Project Structure
 
 ```
-eau-pure-dashboard/
+eau_sure_dash/
 ├── app/                      # Next.js App Router
 │   ├── [locale]/            # Internationalized routes
 │   │   ├── auth/           # Authentication pages
@@ -291,7 +291,7 @@ Give a ⭐️ if this project helped you!
 
 ## 📧 Contact
 
-**Project Link:** [https://github.com/YOUR_USERNAME/eau-pure-dashboard](https://github.com/YOUR_USERNAME/eau-pure-dashboard)
+**Project Link:** [https://github.com/YOUR_USERNAME/eau_sure_dash](https://github.com/YOUR_USERNAME/eau_sure_dash)
 
 ---
 

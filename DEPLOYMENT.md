@@ -11,13 +11,13 @@ git commit -m "Initial commit - Water monitoring dashboard"
 
 ### 1.2 Create GitHub Repository
 1. Go to [github.com](https://github.com/new)
-2. Create a new repository (e.g., "eau-pure-dashboard")
+2. Create a new repository (e.g., "eau_sure_dash")
 3. **Do NOT** initialize with README, .gitignore, or license
 4. Copy the repository URL
 
 ### 1.3 Push to GitHub
 ```bash
-git remote add origin https://github.com/YOUR_USERNAME/eau-pure-dashboard.git
+git remote add origin https://github.com/YOUR_USERNAME/eau_sure_dash.git
 git branch -M main
 git push -u origin main
 ```
