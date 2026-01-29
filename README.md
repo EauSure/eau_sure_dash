@@ -291,7 +291,7 @@ Give a ⭐️ if this project helped you!
 
 ## 📧 Contact
 
-**Project Link:** [https://github.com/EauSure/eau_pure_dash](https://github.com/EauSure/eau_pure_dash)
+**Project Link:** [https://github.com/YOUR_USERNAME/eau-pure-dashboard](https://github.com/YOUR_USERNAME/eau-pure-dashboard)
 
 ---
 
