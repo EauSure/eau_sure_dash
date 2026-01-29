@@ -269,7 +269,7 @@ Contributions, issues, and feature requests are welcome!
 
 ## 📧 Contact
 
-**Project Link:** [https://github.com/YOUR_USERNAME/eau-pure-dashboard](https://github.com/YOUR_USERNAME/eau-pure-dashboard)
+
 
 ---
 
