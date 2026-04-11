@@ -1,7 +1,7 @@
 'use client';
 
 import { signOut, useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -15,10 +15,31 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { User, Settings, LogOut } from 'lucide-react';
 
-export function UserDropdown() {
+type UserDropdownProps = {
+  profileHref?: string;
+  settingsHref?: string;
+  signOutCallbackUrl?: string;
+  showProfileSettings?: boolean;
+};
+
+function getLocaleFromPath(pathname: string): string {
+  const locale = pathname.split('/')[1];
+  return locale === 'en' || locale === 'fr' || locale === 'ar' ? locale : 'fr';
+}
+
+export function UserDropdown({
+  profileHref = '/dashboard/profile',
+  settingsHref = '/dashboard/settings',
+  signOutCallbackUrl,
+  showProfileSettings = true,
+}: UserDropdownProps) {
   const { data: session } = useSession();
   const router = useRouter();
+  const pathname = usePathname();
   const t = useTranslations('userMenu');
+
+  const locale = getLocaleFromPath(pathname);
+  const resolvedSignOutCallback = signOutCallbackUrl || `/${locale}/auth/signin`;
 
   if (!session?.user) {
     return null;
@@ -59,17 +80,21 @@ export function UserDropdown() {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => router.push('/dashboard/profile')}>
-          <User className="mr-2 h-4 w-4" />
-          <span>{t('profile')}</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => router.push('/dashboard/settings')}>
-          <Settings className="mr-2 h-4 w-4" />
-          <span>{t('settings')}</span>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
+        {showProfileSettings && (
+          <>
+            <DropdownMenuItem onClick={() => router.push(profileHref)}>
+              <User className="mr-2 h-4 w-4" />
+              <span>{t('profile')}</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push(settingsHref)}>
+              <Settings className="mr-2 h-4 w-4" />
+              <span>{t('settings')}</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+          </>
+        )}
         <DropdownMenuItem
-          onClick={() => signOut({ callbackUrl: '/fr/auth/signin' })}
+          onClick={() => signOut({ callbackUrl: resolvedSignOutCallback })}
           className="text-destructive focus:text-destructive"
         >
           <LogOut className="mr-2 h-4 w-4" />

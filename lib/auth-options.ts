@@ -13,11 +13,15 @@ export const authOptions: NextAuthOptions = {
       credentials: {
         email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
+        role: { label: 'Role', type: 'text' },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
           throw new Error('Please enter both email and password');
         }
+
+        const requestedRole: 'user' | 'admin' =
+          credentials.role === 'admin' ? 'admin' : 'user';
 
         const user = await getUserByEmail(credentials.email);
 
@@ -34,10 +38,17 @@ export const authOptions: NextAuthOptions = {
           throw new Error('Invalid email or password');
         }
 
+        const actualRole: 'user' | 'admin' = user.role === 'admin' ? 'admin' : 'user';
+
+        if (requestedRole === 'admin' && actualRole !== 'admin') {
+          throw new Error('Your account does not have admin access');
+        }
+
         return {
           id: user._id.toString(),
           email: user.email,
           name: user.name,
+          role: actualRole,
         };
       },
     }),
@@ -53,6 +64,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
         token.email = user.email;
+        token.role = user.role;
       }
       
       // Refresh user data on session update
@@ -61,6 +73,7 @@ export const authOptions: NextAuthOptions = {
         if (updatedUser) {
           token.name = updatedUser.name;
           token.picture = updatedUser.image;
+          token.role = updatedUser.role === 'admin' ? 'admin' : 'user';
         }
       }
       
@@ -69,6 +82,7 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (session.user && token.email) {
         session.user.id = token.id as string;
+        session.user.role = (token.role === 'admin' ? 'admin' : 'user');
         
         // Fetch latest user data from database
         const user = await getUserByEmail(token.email as string);
@@ -76,6 +90,7 @@ export const authOptions: NextAuthOptions = {
           session.user.name = user.name;
           session.user.email = user.email;
           session.user.image = user.image || null;
+          session.user.role = user.role === 'admin' ? 'admin' : 'user';
         }
       }
       return session;

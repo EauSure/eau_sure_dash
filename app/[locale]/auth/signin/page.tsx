@@ -2,20 +2,27 @@
 
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function SignInPage() {
   const router = useRouter();
+  const params = useParams<{ locale?: string | string[] }>();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState<'user' | 'admin'>('user');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  const locale = Array.isArray(params?.locale)
+    ? (params.locale[0] ?? 'fr')
+    : (params?.locale ?? 'fr');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,15 +34,16 @@ export default function SignInPage() {
         redirect: false,
         email,
         password,
+        role,
       });
 
       if (result?.error) {
         setError(result.error);
       } else {
-        router.push('/dashboard');
+        router.push(role === 'admin' ? '/admin' : '/dashboard');
         router.refresh();
       }
-    } catch (error) {
+    } catch {
       setError('An error occurred. Please try again.');
     } finally {
       setIsLoading(false);
@@ -62,6 +70,19 @@ export default function SignInPage() {
               </div>
             )}
             <div className="space-y-2">
+              <Label>Role</Label>
+              <Tabs
+                value={role}
+                onValueChange={(value) => setRole(value === 'admin' ? 'admin' : 'user')}
+                className="w-full"
+              >
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="user">User</TabsTrigger>
+                  <TabsTrigger value="admin">Admin</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
@@ -84,6 +105,14 @@ export default function SignInPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
+              <div className="text-right">
+                <Link
+                  href={`/${locale}/auth/forgot-password`}
+                  className="text-sm font-medium text-primary hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              </div>
             </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4 pt-4">
@@ -93,7 +122,7 @@ export default function SignInPage() {
             <p className="text-sm text-muted-foreground text-center">
               Don&apos;t have an account?{' '}
               <Link
-                href="/auth/signup"
+                href={`/${locale}/auth/signup`}
                 className="font-medium text-primary hover:underline"
               >
                 Sign up

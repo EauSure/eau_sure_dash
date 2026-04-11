@@ -51,6 +51,9 @@ Before deploying, add these environment variables:
 | `MONGODB_URI` | `mongodb+srv://...` | Your MongoDB connection string |
 | `NEXTAUTH_URL` | `https://your-app.vercel.app` | Will be auto-set by Vercel |
 | `NEXTAUTH_SECRET` | Output from openssl command | The secret you generated |
+| `RESEND_API_KEY` | `re_xxxxxxxxx` | API key from Resend dashboard |
+| `MAIL_FROM` | `onboarding@resend.dev` | Test sender without domain (dev/testing) |
+| `APP_NAME` | `EauSure` | Optional app label used in emails |
 
 **Important:** For NEXTAUTH_URL, use `https://your-project-name.vercel.app` (Vercel will show you this URL).
 
@@ -115,6 +118,9 @@ Copy these to Vercel's Environment Variables section:
 MONGODB_URI=mongodb+srv://your-connection-string
 NEXTAUTH_URL=https://your-app.vercel.app
 NEXTAUTH_SECRET=generated-secret-from-openssl
+RESEND_API_KEY=re_xxxxxxxxx
+MAIL_FROM=onboarding@resend.dev
+APP_NAME=EauSure
 ```
 
 ## Support

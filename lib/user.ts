@@ -8,6 +8,7 @@ export interface User {
   _id: ObjectId;
   name: string;
   email: string;
+  role?: 'user' | 'admin';
   password?: string;
   image?: string;
   emailVerified?: Date;
@@ -53,7 +54,8 @@ export async function getUserById(id: string): Promise<User | null> {
 export async function createUser(
   name: string,
   email: string,
-  password: string
+  password: string,
+  role: 'user' | 'admin' = 'user'
 ): Promise<User | null> {
   try {
     const client = await clientPromise;
@@ -72,6 +74,7 @@ export async function createUser(
     const result = await db.collection<Omit<User, '_id'>>('users').insertOne({
       name,
       email,
+      role,
       password: hashedPassword,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -114,5 +117,34 @@ export async function updateUser(
   } catch (error) {
     console.error('Error updating user:', error);
     return null;
+  }
+}
+
+/**
+ * Update user password by email
+ */
+export async function updateUserPasswordByEmail(
+  email: string,
+  password: string
+): Promise<boolean> {
+  try {
+    const client = await clientPromise;
+    const db = client.db(DB_NAME);
+    const hashedPassword = await hashPassword(password);
+
+    const result = await db.collection<User>('users').updateOne(
+      { email },
+      {
+        $set: {
+          password: hashedPassword,
+          updatedAt: new Date(),
+        },
+      }
+    );
+
+    return result.matchedCount > 0;
+  } catch (error) {
+    console.error('Error updating password by email:', error);
+    return false;
   }
 }

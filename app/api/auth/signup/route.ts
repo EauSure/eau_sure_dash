@@ -3,7 +3,15 @@ import { createUser } from '@/lib/user';
 
 export async function POST(request: Request) {
   try {
-    const { name, email, password } = await request.json();
+    const {
+      name,
+      email,
+      password,
+      role: requestedRole,
+      adminSecret,
+    } = await request.json();
+
+    const role: 'user' | 'admin' = requestedRole === 'admin' ? 'admin' : 'user';
 
     // Validate input
     if (!name || !email || !password) {
@@ -30,8 +38,26 @@ export async function POST(request: Request) {
       );
     }
 
+    if (role === 'admin') {
+      const expectedAdminSecret = process.env.ADMIN_SIGNUP_SECRET;
+
+      if (!expectedAdminSecret) {
+        return NextResponse.json(
+          { error: 'Admin account creation is currently disabled' },
+          { status: 403 }
+        );
+      }
+
+      if (adminSecret !== expectedAdminSecret) {
+        return NextResponse.json(
+          { error: 'Invalid admin access key' },
+          { status: 403 }
+        );
+      }
+    }
+
     // Create user
-    const user = await createUser(name, email, password);
+    const user = await createUser(name, email, password, role);
 
     if (!user) {
       return NextResponse.json(
@@ -47,12 +73,14 @@ export async function POST(request: Request) {
         id: user._id.toString(),
         name: user.name,
         email: user.email,
+        role: user.role ?? 'user',
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Internal server error';
     console.error('Signup error:', error);
     return NextResponse.json(
-      { error: error.message || 'Internal server error' },
+      { error: message },
       { status: 500 }
     );
   }

@@ -131,6 +131,11 @@ MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/database
 # NextAuth Configuration
 NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=your-secret-key-here
+
+# Password Reset Email (Resend)
+RESEND_API_KEY=re_xxxxxxxxx
+MAIL_FROM=onboarding@resend.dev
+APP_NAME=EauSure
 ```
 
 **Generate NEXTAUTH_SECRET:**

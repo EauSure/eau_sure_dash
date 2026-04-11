@@ -46,7 +46,7 @@ git push -u origin main
    - Find your repository and click "Import"
 
 3. **Configure Environment Variables**
-   Click "Environment Variables" and add these 3 variables:
+   Click "Environment Variables" and add these variables:
 
    **Variable 1:**
    - Name: `MONGODB_URI`
@@ -63,6 +63,18 @@ git push -u origin main
    - Name: `NEXTAUTH_URL`
    - Value: Leave empty for now (Vercel will set it automatically)
    - Or use: `https://YOUR_PROJECT_NAME.vercel.app`
+
+   **Variable 4:**
+   - Name: `RESEND_API_KEY`
+   - Value: Your Resend API key (starts with `re_`)
+
+   **Variable 5:**
+   - Name: `MAIL_FROM`
+   - Value: `onboarding@resend.dev` (for testing)
+
+   **Variable 6 (optional):**
+   - Name: `APP_NAME`
+   - Value: `EauSure`
 
 4. **Deploy**
    - Click "Deploy"

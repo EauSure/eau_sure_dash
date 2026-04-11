@@ -10,20 +10,44 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { UserDropdown } from '@/components/user-dropdown';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { 
   LayoutDashboard, 
-  Droplets, 
   AlertTriangle, 
   Settings, 
-  Radio,
+  Cpu,
+  Wrench,
+  LifeBuoy,
   LogOut,
   ChevronLeft,
   ChevronRight,
   User
 } from 'lucide-react';
 
-export function DashboardLayout({ children }: { children: React.ReactNode }) {
+type NavigationItem = {
+  name: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+};
+
+type DashboardLayoutProps = {
+  children: React.ReactNode;
+  navigation?: NavigationItem[];
+  sidebarStorageKey?: string;
+  userDropdownProps?: {
+    profileHref?: string;
+    settingsHref?: string;
+    signOutCallbackUrl?: string;
+    showProfileSettings?: boolean;
+  };
+};
+
+export function DashboardLayout({
+  children,
+  navigation,
+  sidebarStorageKey = 'sidebarCollapsed',
+  userDropdownProps,
+}: DashboardLayoutProps) {
   const pathname = usePathname();
   const t = useTranslations('navigation');
   const tApp = useTranslations('app');
@@ -31,7 +55,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   // Initialize state from localStorage immediately to avoid animation flash
   const [isCollapsed, setIsCollapsed] = useState(() => {
     if (typeof window !== 'undefined') {
-      const savedState = localStorage.getItem('sidebarCollapsed');
+      const savedState = localStorage.getItem(sidebarStorageKey);
       return savedState === 'true';
     }
     return false;
@@ -41,21 +65,20 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const toggleSidebar = () => {
     const newState = !isCollapsed;
     setIsCollapsed(newState);
-    localStorage.setItem('sidebarCollapsed', String(newState));
+    localStorage.setItem(sidebarStorageKey, String(newState));
   };
 
-  const navigation = [
-    { name: t('overview'), href: '/dashboard', icon: LayoutDashboard },
-    { name: t('wells'), href: '/dashboard/wells', icon: Droplets },
-    { name: t('alerts'), href: '/dashboard/alerts', icon: AlertTriangle },
-    { name: t('devices'), href: '/dashboard/devices', icon: Settings },
-    { name: t('gateway'), href: '/dashboard/gateway', icon: Radio },
-    { name: t('profile'), href: '/dashboard/profile', icon: User },
-    { name: t('settings'), href: '/dashboard/settings', icon: Settings },
+  const defaultNavigation: NavigationItem[] = [
+    { name: 'Aperçu', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Dispositifs', href: '/dashboard/devices', icon: Cpu },
+    { name: 'Alertes', href: '/dashboard/alerts', icon: AlertTriangle },
+    { name: 'Updates', href: '/dashboard/updates', icon: Wrench },
+    { name: 'Support technique et bugs', href: '/dashboard/support', icon: LifeBuoy },
+    { name: 'Profil', href: '/dashboard/profile', icon: User },
+    { name: 'Paramètres', href: '/dashboard/settings', icon: Settings },
   ];
 
-  // Get current page name
-  const currentPage = navigation.find((item) => pathname === item.href)?.name || t('overview');
+  const navigationItems = navigation ?? defaultNavigation;
 
   return (
     <div className="flex h-screen">
@@ -80,7 +103,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         <Separator />
         
         <nav className={cn("flex-1 p-4 space-y-1 transition-all duration-300", isCollapsed && "px-2")}>
-          {navigation.map((item, index) => {
+          {navigationItems.map((item, index) => {
             const isActive = pathname === item.href;
             return (
               <motion.div
@@ -152,7 +175,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             </div>
             <div className="flex items-center gap-4">
               <ThemeToggle />
-              <UserDropdown />
+              <UserDropdown {...userDropdownProps} />
             </div>
           </div>
         </header>

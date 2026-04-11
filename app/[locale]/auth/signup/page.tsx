@@ -2,22 +2,30 @@
 
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function SignUpPage() {
   const router = useRouter();
+  const params = useParams<{ locale?: string | string[] }>();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [role, setRole] = useState<'user' | 'admin'>('user');
+  const [adminSecret, setAdminSecret] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  const locale = Array.isArray(params?.locale)
+    ? (params.locale[0] ?? 'fr')
+    : (params?.locale ?? 'fr');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,7 +49,13 @@ export default function SignUpPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+          role,
+          ...(role === 'admin' ? { adminSecret } : {}),
+        }),
       });
 
       const data = await response.json();
@@ -57,6 +71,7 @@ export default function SignUpPage() {
         redirect: false,
         email,
         password,
+        role,
       });
 
       if (result?.error) {
@@ -64,10 +79,10 @@ export default function SignUpPage() {
         setIsLoading(false);
       } else if (result?.ok) {
         // Successfully signed in, redirect to dashboard
-        router.push('/dashboard');
+        router.push(role === 'admin' ? '/admin' : '/dashboard');
         router.refresh();
       }
-    } catch (error) {
+    } catch {
       setError('An error occurred. Please try again.');
       setIsLoading(false);
     }
@@ -92,6 +107,19 @@ export default function SignUpPage() {
                 <p className="text-sm text-destructive">{error}</p>
               </div>
             )}
+            <div className="space-y-2">
+              <Label>Role</Label>
+              <Tabs
+                value={role}
+                onValueChange={(value) => setRole(value === 'admin' ? 'admin' : 'user')}
+                className="w-full"
+              >
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="user">User</TabsTrigger>
+                  <TabsTrigger value="admin">Admin</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
             <div className="space-y-2">
               <Label htmlFor="name">Full Name</Label>
               <Input
@@ -139,6 +167,20 @@ export default function SignUpPage() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
               />
             </div>
+            {role === 'admin' && (
+              <div className="space-y-2">
+                <Label htmlFor="adminSecret">Admin Access Key</Label>
+                <Input
+                  id="adminSecret"
+                  type="password"
+                  placeholder="Enter admin access key"
+                  autoComplete="off"
+                  required
+                  value={adminSecret}
+                  onChange={(e) => setAdminSecret(e.target.value)}
+                />
+              </div>
+            )}
           </CardContent>
           <CardFooter className="flex flex-col space-y-4 pt-4">
             <Button type="submit" className="w-full" disabled={isLoading}>
@@ -147,7 +189,7 @@ export default function SignUpPage() {
             <p className="text-sm text-muted-foreground text-center">
               Already have an account?{' '}
               <Link
-                href="/fr/auth/signin"
+                href={`/${locale}/auth/signin`}
                 className="font-medium text-primary hover:underline"
               >
                 Sign in

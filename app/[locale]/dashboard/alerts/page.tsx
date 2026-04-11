@@ -2,12 +2,55 @@
 
 import { DashboardLayout } from '@/components/dashboard-layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertTriangle } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { AlertTriangle, Bell, ShieldAlert } from 'lucide-react';
 
 export default function AlertsPage() {
+  const alerts = [
+    {
+      id: 'ALR-104',
+      type: 'Water Quality',
+      severity: 'Critical',
+      device: 'DEV-ESP32-002',
+      message: 'TDS threshold exceeded for 12 minutes',
+      time: 'Today, 09:40',
+    },
+    {
+      id: 'ALR-103',
+      type: 'Battery',
+      severity: 'Warning',
+      device: 'DEV-ESP32-004',
+      message: 'Battery dropped below 25%',
+      time: 'Today, 07:15',
+    },
+    {
+      id: 'ALR-099',
+      type: 'Connectivity',
+      severity: 'Info',
+      device: 'DEV-ESP32-003',
+      message: 'Connection restored after temporary outage',
+      time: 'Yesterday, 23:08',
+    },
+  ];
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold tracking-tight">Alertes</h1>
+          <p className="text-muted-foreground">
+            Suivez les alertes critiques, avertissements et evenements d&apos;information.
+          </p>
+        </div>
+
         <div className="grid gap-4 md:grid-cols-3">
           <Card>
             <CardHeader className="pb-3">
@@ -16,7 +59,7 @@ export default function AlertsPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">0</div>
+              <div className="text-2xl font-bold">1</div>
             </CardContent>
           </Card>
           <Card>
@@ -26,7 +69,7 @@ export default function AlertsPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">0</div>
+              <div className="text-2xl font-bold">1</div>
             </CardContent>
           </Card>
           <Card>
@@ -36,24 +79,51 @@ export default function AlertsPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">0</div>
+              <div className="text-2xl font-bold">3</div>
             </CardContent>
           </Card>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>Alerts</CardTitle>
-            <CardDescription>Monitor system and water quality alerts</CardDescription>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="h-5 w-5 text-muted-foreground" />
+              Alert Feed
+            </CardTitle>
+            <CardDescription>Dernieres alertes detectees sur vos dispositifs</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-center py-12">
-              <AlertTriangle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium mb-2">No Alerts</h3>
-              <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                Alerts will appear here when water quality thresholds are exceeded, fall detection events occur, or device issues are detected.
-              </p>
-            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>ID</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Device</TableHead>
+                  <TableHead>Message</TableHead>
+                  <TableHead>Time</TableHead>
+                  <TableHead className="text-right">Severity</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {alerts.map((alert) => (
+                  <TableRow key={alert.id}>
+                    <TableCell className="font-medium">{alert.id}</TableCell>
+                    <TableCell>{alert.type}</TableCell>
+                    <TableCell>{alert.device}</TableCell>
+                    <TableCell>{alert.message}</TableCell>
+                    <TableCell className="text-muted-foreground">{alert.time}</TableCell>
+                    <TableCell className="text-right">
+                      <Badge
+                        variant={alert.severity === 'Critical' ? 'destructive' : 'secondary'}
+                      >
+                        {alert.severity === 'Critical' ? <ShieldAlert className="h-3 w-3 mr-1" /> : <AlertTriangle className="h-3 w-3 mr-1" />}
+                        {alert.severity}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
       </div>
