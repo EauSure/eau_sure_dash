@@ -3,7 +3,7 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import { MongoDBAdapter } from '@auth/mongodb-adapter';
 import clientPromise from './mongodb';
 import { comparePassword } from './auth';
-import { getUserByEmail } from './user';
+import { getUserByEmail, updateUserPresenceByEmail } from './user';
 
 export const authOptions: NextAuthOptions = {
   adapter: MongoDBAdapter(clientPromise),
@@ -69,6 +69,10 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.email = user.email;
         token.role = user.role;
+
+        if (typeof user.email === 'string') {
+          await updateUserPresenceByEmail(user.email, true);
+        }
       }
       
       // Refresh user data on session update
@@ -98,6 +102,23 @@ export const authOptions: NextAuthOptions = {
         }
       }
       return session;
+    },
+  },
+  events: {
+    async signOut(message) {
+      const tokenEmail =
+        message && typeof message === 'object' && 'token' in message
+          ? (message.token?.email as string | undefined)
+          : undefined;
+      const sessionEmail =
+        message && typeof message === 'object' && 'session' in message
+          ? message.session?.user?.email || undefined
+          : undefined;
+
+      const email = tokenEmail || sessionEmail;
+      if (email) {
+        await updateUserPresenceByEmail(email, false);
+      }
     },
   },
 };

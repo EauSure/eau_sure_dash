@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useLocale, useTranslations } from 'next-intl';
 import { toast } from 'sonner';
-import { AdminLayout } from '@/components/admin-layout';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -53,6 +52,8 @@ interface AdminUser {
   email: string;
   role: UserRole;
   status: UserStatus;
+  isOnline?: boolean;
+  lastSeen?: string | Date | null;
   image?: string;
   createdAt?: string | Date;
 }
@@ -75,6 +76,7 @@ function getDiceBearAvatar(seed: string): string {
 export default function ManageUsersPage() {
   const { data: session } = useSession();
   const t = useTranslations('manageUsers');
+  const tPresence = useTranslations('presence');
   const locale = useLocale();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -117,6 +119,14 @@ export default function ManageUsersPage() {
 
   useEffect(() => {
     fetchUsers();
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchUsers();
+    }, 15000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const filteredUsers = useMemo(() => {
@@ -172,6 +182,23 @@ export default function ManageUsersPage() {
       month: 'short',
       day: '2-digit',
     }).format(new Date(value));
+  };
+
+  const formatLastSeen = (value?: string | Date | null) => {
+    if (!value) return tPresence('never');
+
+    const timestamp = new Date(value).getTime();
+    if (Number.isNaN(timestamp)) return tPresence('never');
+
+    const diffMs = timestamp - Date.now();
+    const absMs = Math.abs(diffMs);
+    const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
+
+    if (absMs < 60_000) return rtf.format(Math.round(diffMs / 1000), 'second');
+    if (absMs < 3_600_000) return rtf.format(Math.round(diffMs / 60_000), 'minute');
+    if (absMs < 86_400_000) return rtf.format(Math.round(diffMs / 3_600_000), 'hour');
+
+    return rtf.format(Math.round(diffMs / 86_400_000), 'day');
   };
 
   const openActionDialog = (type: ActionType, user: AdminUser) => {
@@ -277,7 +304,7 @@ export default function ManageUsersPage() {
   }, [pendingAction, t]);
 
   return (
-    <AdminLayout>
+    <>
       <div className="space-y-6">
         <SectionCard title={t('title')} description={t('description')}>
           <div className="space-y-4">
@@ -315,6 +342,12 @@ export default function ManageUsersPage() {
                   <SelectItem value="suspended">{t('statuses.suspended')}</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="flex justify-end">
+              <Button variant="outline" size="sm" onClick={fetchUsers}>
+                {t('refresh')}
+              </Button>
             </div>
 
             <p className="text-muted-foreground text-sm">
@@ -372,6 +405,7 @@ export default function ManageUsersPage() {
                         {t('columns.status')}
                       </Button>
                     </TableHead>
+                    <TableHead>{t('columns.presence')}</TableHead>
                     <TableHead>
                       <Button variant="ghost" size="sm" onClick={() => handleSort('createdAt')}>
                         {t('columns.createdAt')}
@@ -414,6 +448,23 @@ export default function ManageUsersPage() {
                           >
                             {getStatusLabel(user.status)}
                           </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2 text-sm">
+                            <span
+                              className={`relative inline-flex size-2.5 rounded-full ${
+                                user.isOnline ? 'bg-emerald-500' : 'bg-slate-400'
+                              }`}
+                            >
+                              {user.isOnline && (
+                                <span className="absolute inset-0 animate-ping rounded-full bg-emerald-500/75" />
+                              )}
+                            </span>
+                            <span className="text-muted-foreground">
+                              {user.isOnline ? tPresence('online') : tPresence('lastSeen')}
+                              {!user.isOnline ? `: ${formatLastSeen(user.lastSeen)}` : ''}
+                            </span>
+                          </div>
                         </TableCell>
                         <TableCell>{formatDate(user.createdAt)}</TableCell>
                         <TableCell className="text-right">
@@ -500,6 +551,19 @@ export default function ManageUsersPage() {
                       >
                         {getStatusLabel(user.status)}
                       </Badge>
+                      <Badge
+                        variant="outline"
+                        className={user.isOnline ? 'border-emerald-500/60 text-emerald-700' : ''}
+                      >
+                        <span
+                          className={`mr-2 inline-block size-2 rounded-full ${
+                            user.isOnline ? 'bg-emerald-500' : 'bg-slate-400'
+                          }`}
+                        />
+                        {user.isOnline
+                          ? tPresence('online')
+                          : `${tPresence('lastSeen')}: ${formatLastSeen(user.lastSeen)}`}
+                      </Badge>
                       <Badge variant="outline">{formatDate(user.createdAt)}</Badge>
                     </div>
 
@@ -532,6 +596,6 @@ export default function ManageUsersPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </AdminLayout>
+    </>
   );
 }

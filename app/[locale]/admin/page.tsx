@@ -1,7 +1,6 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { AdminLayout } from '@/components/admin-layout';
 import { SectionCard } from '@/components/ui/section-card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -38,8 +37,7 @@ export default function AdminDashboardPage() {
   ];
 
   return (
-    <AdminLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         <div className="space-y-1">
           <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
           <p className="text-muted-foreground">
@@ -62,6 +60,5 @@ export default function AdminDashboardPage() {
           ))}
         </div>
       </div>
-    </AdminLayout>
   );
 }

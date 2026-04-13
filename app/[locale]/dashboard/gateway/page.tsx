@@ -1,7 +1,6 @@
 import { getServerSession } from 'next-auth/next';
 import { redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth-options';
-import { DashboardLayout } from '@/components/dashboard-layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Radio } from 'lucide-react';
 
@@ -13,8 +12,7 @@ export default async function GatewayPage() {
   }
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         <div className="grid gap-4 md:grid-cols-3">
           <Card>
             <CardHeader className="pb-3">
@@ -64,6 +62,5 @@ export default async function GatewayPage() {
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
   );
 }

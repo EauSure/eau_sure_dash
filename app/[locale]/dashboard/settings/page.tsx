@@ -8,7 +8,6 @@ import { z } from 'zod';
 import { toast } from 'sonner';
 import { useTranslations, useLocale } from 'next-intl';
 import { useRouter, usePathname } from '@/i18n/routing';
-import { DashboardLayout } from '@/components/dashboard-layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -220,19 +219,16 @@ export default function SettingsPage() {
 
   if (status === 'loading' || isLoading) {
     return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center min-h-100">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
-      </DashboardLayout>
+      <div className="flex items-center justify-center min-h-100">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
     );
   }
 
   const isDirty = form.formState.isDirty;
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6 max-w-5xl">
+    <div className="space-y-6 max-w-5xl">
         {/* Header */}
         <div className="space-y-1">
           <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
@@ -551,6 +547,5 @@ export default function SettingsPage() {
           </form>
         </Form>
       </div>
-    </DashboardLayout>
   );
 }

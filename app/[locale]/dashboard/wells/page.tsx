@@ -2,7 +2,6 @@ import { getServerSession } from 'next-auth/next';
 import { redirect } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { authOptions } from '@/lib/auth-options';
-import { DashboardLayout } from '@/components/dashboard-layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Droplets } from 'lucide-react';
 
@@ -16,8 +15,7 @@ export default async function WellsPage() {
   }
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         <Card>
           <CardHeader>
             <CardTitle>Wells & Reservoirs</CardTitle>
@@ -36,6 +34,5 @@ export default async function WellsPage() {
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
   );
 }

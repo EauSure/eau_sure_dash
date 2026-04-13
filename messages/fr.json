@@ -161,6 +161,7 @@
       "email": "E-mail",
       "role": "Rôle",
       "status": "Statut",
+      "presence": "Présence",
       "createdAt": "Créé le",
       "actions": "Actions"
     },
@@ -193,6 +194,7 @@
     "noUsers": "Aucun utilisateur trouvé.",
     "error": "Impossible de charger les utilisateurs.",
     "retry": "Réessayer",
+    "refresh": "Actualiser",
     "cancel": "Annuler",
     "working": "Traitement...",
     "showing": "Affichage de {count} sur {total} utilisateurs",
@@ -201,6 +203,15 @@
       "roleUpdated": "Rôle utilisateur mis à jour.",
       "statusUpdated": "Statut utilisateur mis à jour."
     }
+  },
+  "presence": {
+    "online": "En ligne",
+    "offline": "Hors ligne",
+    "never": "Jamais vu",
+    "justNow": "À l'instant",
+    "minutesAgo": "il y a {count} min",
+    "hoursAgo": "il y a {count} h",
+    "lastSeen": "Dernière activité"
   },
   "alerts": {
     "title": "Alertes",

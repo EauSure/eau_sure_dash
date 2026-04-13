@@ -163,6 +163,7 @@
       "email": "Email",
       "role": "Role",
       "status": "Status",
+      "presence": "Presence",
       "createdAt": "Created",
       "actions": "Actions"
     },
@@ -195,6 +196,7 @@
     "noUsers": "No users found.",
     "error": "Failed to load users.",
     "retry": "Retry",
+    "refresh": "Refresh",
     "cancel": "Cancel",
     "working": "Working...",
     "showing": "Showing {count} of {total} users",
@@ -203,6 +205,15 @@
       "roleUpdated": "User role updated successfully.",
       "statusUpdated": "User status updated successfully."
     }
+  },
+  "presence": {
+    "online": "Online",
+    "offline": "Offline",
+    "never": "Never seen",
+    "justNow": "Just now",
+    "minutesAgo": "{count} min ago",
+    "hoursAgo": "{count} hr ago",
+    "lastSeen": "Last seen"
   },
   "alerts": {
     "title": "Alerts",

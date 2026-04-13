@@ -17,6 +17,8 @@ export interface CompleteUserProfile extends UserProfile {
   name: string;
   email: string;
   image?: string;
+  isOnline: boolean;
+  lastSeen: string | null;
 }
 
 export interface UserPreferences {

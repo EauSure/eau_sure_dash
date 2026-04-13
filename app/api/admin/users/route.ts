@@ -3,24 +3,36 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getClient } from '@/lib/mongodb';
 import type { User } from '@/lib/user';
 
+const ONLINE_THRESHOLD_MS = 60_000;
+
 type AdminUserDTO = {
   _id: string;
   name: string;
   email: string;
   role: 'admin' | 'user';
   status: 'active' | 'suspended';
+  isOnline: boolean;
+  lastSeen: string | null;
   image?: string;
   createdAt?: Date;
   updatedAt?: Date;
 };
 
-function toAdminUserDTO(user: User): AdminUserDTO {
+function toAdminUserDTO(user: User, now: number): AdminUserDTO {
+  const lastSeenDate = user.lastSeen ? new Date(user.lastSeen) : null;
+  const isOnline =
+    user.isOnline === true &&
+    !!lastSeenDate &&
+    now - lastSeenDate.getTime() < ONLINE_THRESHOLD_MS;
+
   return {
     _id: user._id.toString(),
     name: user.name,
     email: user.email,
     role: user.role === 'admin' ? 'admin' : 'user',
     status: user.status === 'suspended' ? 'suspended' : 'active',
+    isOnline,
+    lastSeen: lastSeenDate ? lastSeenDate.toISOString() : null,
     image: user.image,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
@@ -53,7 +65,8 @@ export async function GET(req: NextRequest) {
       .sort({ createdAt: -1 })
       .toArray();
 
-    return NextResponse.json(users.map(toAdminUserDTO));
+    const now = Date.now();
+    return NextResponse.json(users.map((user) => toAdminUserDTO(user, now)));
   } catch (err) {
     console.error('[GET /api/admin/users]', err);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

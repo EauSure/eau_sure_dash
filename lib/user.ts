@@ -10,6 +10,8 @@ export interface User {
   email: string;
   role?: 'user' | 'admin';
   status?: 'active' | 'suspended';
+  isOnline?: boolean;
+  lastSeen?: Date | null;
   password?: string;
   image?: string;
   emailVerified?: Date;
@@ -77,6 +79,8 @@ export async function createUser(
       email,
       role,
       status: 'active',
+      isOnline: false,
+      lastSeen: null,
       password: hashedPassword,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -147,6 +151,35 @@ export async function updateUserPasswordByEmail(
     return result.matchedCount > 0;
   } catch (error) {
     console.error('Error updating password by email:', error);
+    return false;
+  }
+}
+
+/**
+ * Update user presence by email
+ */
+export async function updateUserPresenceByEmail(
+  email: string,
+  isOnline: boolean
+): Promise<boolean> {
+  try {
+    const client = await clientPromise;
+    const db = client.db(DB_NAME);
+
+    const result = await db.collection<User>('users').updateOne(
+      { email },
+      {
+        $set: {
+          isOnline,
+          lastSeen: new Date(),
+          updatedAt: new Date(),
+        },
+      }
+    );
+
+    return result.matchedCount > 0;
+  } catch (error) {
+    console.error('Error updating user presence by email:', error);
     return false;
   }
 }

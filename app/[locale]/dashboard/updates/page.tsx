@@ -1,7 +1,6 @@
 import { getServerSession } from 'next-auth/next';
 import { redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth-options';
-import { DashboardLayout } from '@/components/dashboard-layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -49,8 +48,7 @@ export default async function UpdatesPage() {
   // Note: This is a server component. Client translations will be applied
   // through the DashboardLayout wrapper
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Updates</h1>
@@ -104,6 +102,5 @@ export default async function UpdatesPage() {
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
   );
 }

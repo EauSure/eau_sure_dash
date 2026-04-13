@@ -18,7 +18,7 @@ function getLocaleFromPath(pathname: string): string | null {
     : null;
 }
 
-function isValidLocale(locale: any): locale is typeof locales[number] {
+function isValidLocale(locale: string | null | undefined): locale is typeof locales[number] {
   return locales.includes(locale);
 }
 

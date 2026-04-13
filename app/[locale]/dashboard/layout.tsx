@@ -1,6 +1,8 @@
 import { getServerSession } from 'next-auth/next';
 import { redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth-options';
+import { DashboardLayout } from '@/components/dashboard-layout';
+import HeartbeatProvider from '@/components/heartbeat-provider';
 
 export default async function UserDashboardLayout({
   children,
@@ -20,5 +22,9 @@ export default async function UserDashboardLayout({
     redirect(`/${locale}/admin`);
   }
 
-  return children;
+  return (
+    <DashboardLayout>
+      <HeartbeatProvider>{children}</HeartbeatProvider>
+    </DashboardLayout>
+  );
 }

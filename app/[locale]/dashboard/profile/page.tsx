@@ -8,7 +8,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
-import { DashboardLayout } from '@/components/dashboard-layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -181,11 +180,9 @@ export default function ProfilePage() {
 
   if (status === 'loading' || isLoading) {
     return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center min-h-100">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
-      </DashboardLayout>
+      <div className="flex items-center justify-center min-h-100">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
     );
   }
 
@@ -199,8 +196,7 @@ export default function ProfilePage() {
   const isDirty = form.formState.isDirty;
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6 max-w-4xl">
+    <div className="space-y-6 max-w-4xl">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
           <p className="text-muted-foreground mt-2">
@@ -362,6 +358,5 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
   );
 }
