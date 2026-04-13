@@ -264,8 +264,121 @@
     "description": "Manage your LoRaWAN gateway connectivity"
   },
   "support": {
-    "title": "Support",
-    "description": "Get help and technical support"
+    "title": "Support & Bug Reports",
+    "back": "Back",
+    "pageTitle": "How can we help you?",
+    "pageSubtitle": "We're here to support you every step of the way.",
+    "submitTicket": "Submit a Ticket",
+    "myTickets": "My Tickets",
+    "form": {
+      "title": "Title",
+      "titlePlaceholder": "Brief summary of the issue",
+      "description": "Description",
+      "descriptionPlaceholder": "Describe the problem in detail",
+      "category": "Category",
+      "priority": "Priority",
+      "submit": "Submit Ticket"
+    },
+    "categories": {
+      "bug": "Bug",
+      "device": "Device",
+      "gateway": "Gateway",
+      "alert": "Alert",
+      "other": "Other"
+    },
+    "priorities": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "critical": "Critical"
+    },
+    "statuses": {
+      "open": "Open",
+      "in_progress": "In Progress",
+      "resolved": "Resolved",
+      "closed": "Closed"
+    },
+    "searchPlaceholder": "Search by title or ticket ID...",
+    "filters": {
+      "status": "Status",
+      "category": "Category",
+      "priority": "Priority",
+      "allStatuses": "All statuses",
+      "allCategories": "All categories",
+      "allPriorities": "All priorities"
+    },
+    "columns": {
+      "ticket": "Ticket",
+      "user": "User",
+      "category": "Category",
+      "priority": "Priority",
+      "status": "Status",
+      "createdAt": "Created",
+      "actions": "Actions"
+    },
+    "actions": {
+      "viewDetails": "View details",
+      "changeStatus": "Change status",
+      "editNote": "Edit note",
+      "delete": "Delete"
+    },
+    "dialog": {
+      "noteTitle": "Admin Note",
+      "noteDescription": "Update the internal note for this ticket.",
+      "deleteTitle": "Delete Ticket?"
+    },
+    "showing": "Showing {count} of {total} tickets",
+    "noTickets": "No tickets found",
+    "error": "Failed to load tickets.",
+    "adminNote": "Admin Note",
+    "deleteConfirm": "This will permanently delete this ticket.",
+    "save": "Save",
+    "cancel": "Cancel",
+    "close": "Close",
+    "prev": "Previous",
+    "next": "Next",
+    "refresh": "Refresh",
+    "labels": {
+      "category": "Category",
+      "priority": "Priority",
+      "submitted": "Submitted",
+      "description": "Description"
+    },
+    "landing": {
+      "title": "How can we help?",
+      "subtitle": "Choose an option below",
+      "newTicket": "Submit a Ticket",
+      "newTicketDesc": "Report a bug or system problem",
+      "myTickets": "My Tickets",
+      "myTicketsDesc": "Track your submitted requests",
+      "liveChat": "Live Chat",
+      "liveChatDesc": "Chat with an available administrator"
+    },
+    "chat": {
+      "title": "Live Chat",
+      "available": "An admin is online",
+      "availableWithName": "{name} is online",
+      "unavailable": "No admins are currently online",
+      "unavailableHint": "Submit a ticket and we'll get back to you.",
+      "placeholder": "Type your message...",
+      "send": "Send",
+      "agentName": "Support Agent",
+      "you": "You",
+      "empty": "Start the conversation by sending a message."
+    },
+    "detail": {
+      "submittedBy": "Submitted by {name} · {email}",
+      "createdAt": "Created {date}",
+      "updateStatus": "Update Status",
+      "internalNote": "Internal Note",
+      "internalNotePlaceholder": "Add resolution notes...",
+      "saveChanges": "Save Changes"
+    },
+    "toasts": {
+      "created": "Ticket submitted successfully.",
+      "updated": "Ticket updated successfully.",
+      "deleted": "Ticket deleted successfully."
+    }
   },
   "home": {
     "title": "IoT Water Monitoring",

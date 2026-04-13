@@ -262,8 +262,121 @@
     "description": "إدارة اتصال بوابة LoRaWAN لديك"
   },
   "support": {
-    "title": "الدعم",
-    "description": "احصل على المساعدة والدعم الفني"
+    "title": "الدعم وتقارير الأخطاء",
+    "back": "رجوع",
+    "pageTitle": "كيف يمكننا مساعدتك؟",
+    "pageSubtitle": "نحن هنا لدعمك في كل خطوة.",
+    "submitTicket": "إرسال تذكرة",
+    "myTickets": "تذاكري",
+    "form": {
+      "title": "العنوان",
+      "titlePlaceholder": "ملخص مختصر للمشكلة",
+      "description": "الوصف",
+      "descriptionPlaceholder": "صف المشكلة بالتفصيل",
+      "category": "الفئة",
+      "priority": "الأولوية",
+      "submit": "إرسال التذكرة"
+    },
+    "categories": {
+      "bug": "خطأ",
+      "device": "الجهاز",
+      "gateway": "البوابة",
+      "alert": "تنبيه",
+      "other": "أخرى"
+    },
+    "priorities": {
+      "low": "منخفضة",
+      "medium": "متوسطة",
+      "high": "عالية",
+      "critical": "حرجة"
+    },
+    "statuses": {
+      "open": "مفتوحة",
+      "in_progress": "قيد المعالجة",
+      "resolved": "تم الحل",
+      "closed": "مغلقة"
+    },
+    "searchPlaceholder": "ابحث بالعَنوان أو معرّف التذكرة...",
+    "filters": {
+      "status": "الحالة",
+      "category": "الفئة",
+      "priority": "الأولوية",
+      "allStatuses": "كل الحالات",
+      "allCategories": "كل الفئات",
+      "allPriorities": "كل الأولويات"
+    },
+    "columns": {
+      "ticket": "التذكرة",
+      "user": "المستخدم",
+      "category": "الفئة",
+      "priority": "الأولوية",
+      "status": "الحالة",
+      "createdAt": "تاريخ الإنشاء",
+      "actions": "الإجراءات"
+    },
+    "actions": {
+      "viewDetails": "عرض التفاصيل",
+      "changeStatus": "تغيير الحالة",
+      "editNote": "تعديل الملاحظة",
+      "delete": "حذف"
+    },
+    "dialog": {
+      "noteTitle": "ملاحظة المسؤول",
+      "noteDescription": "حدّث الملاحظة الداخلية لهذه التذكرة.",
+      "deleteTitle": "حذف التذكرة؟"
+    },
+    "showing": "عرض {count} من أصل {total} تذكرة",
+    "noTickets": "لم يتم العثور على تذاكر",
+    "error": "فشل تحميل التذاكر.",
+    "adminNote": "ملاحظة المسؤول",
+    "deleteConfirm": "سيؤدي هذا إلى حذف هذه التذكرة نهائيا.",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "close": "إغلاق",
+    "prev": "السابق",
+    "next": "التالي",
+    "refresh": "تحديث",
+    "labels": {
+      "category": "الفئة",
+      "priority": "الأولوية",
+      "submitted": "تم الإرسال",
+      "description": "الوصف"
+    },
+    "landing": {
+      "title": "كيف يمكننا المساعدة؟",
+      "subtitle": "اختر خيارا أدناه",
+      "newTicket": "إرسال تذكرة",
+      "newTicketDesc": "الإبلاغ عن خطأ أو مشكلة في النظام",
+      "myTickets": "تذاكري",
+      "myTicketsDesc": "تتبع طلباتك المرسلة",
+      "liveChat": "الدردشة المباشرة",
+      "liveChatDesc": "تحدث مع مسؤول متاح"
+    },
+    "chat": {
+      "title": "الدردشة المباشرة",
+      "available": "هناك مسؤول متاح الآن",
+      "availableWithName": "{name} متصل الآن",
+      "unavailable": "لا يوجد مسؤولون متصلون حاليا",
+      "unavailableHint": "يمكنك إرسال تذكرة وسنعود إليك.",
+      "placeholder": "اكتب رسالتك...",
+      "send": "إرسال",
+      "agentName": "وكيل الدعم",
+      "you": "أنت",
+      "empty": "ابدأ المحادثة بإرسال رسالة."
+    },
+    "detail": {
+      "submittedBy": "تم الإرسال بواسطة {name} · {email}",
+      "createdAt": "أُنشئت في {date}",
+      "updateStatus": "تحديث الحالة",
+      "internalNote": "ملاحظة داخلية",
+      "internalNotePlaceholder": "أضف ملاحظات الحل...",
+      "saveChanges": "حفظ التغييرات"
+    },
+    "toasts": {
+      "created": "تم إرسال التذكرة بنجاح.",
+      "updated": "تم تحديث التذكرة بنجاح.",
+      "deleted": "تم حذف التذكرة بنجاح."
+    }
   },
   "home": {
     "title": "مراقبة المياه IoT",

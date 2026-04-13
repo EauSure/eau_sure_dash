@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const locales = ['en', 'fr', 'ar'] as const;
 const defaultLocale = 'fr';
+const apiAuthExclusions = ['/api/tickets'] as const;
 const authPages = [
   '/signin',
   '/signup',
@@ -28,6 +29,10 @@ function isAuthPage(pathname: string): boolean {
 
 export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  if (apiAuthExclusions.some((route) => pathname.startsWith(route))) {
+    return NextResponse.next();
+  }
 
   if (pathname.startsWith('/api/')) {
     return NextResponse.next();

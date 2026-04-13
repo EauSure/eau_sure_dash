@@ -262,8 +262,121 @@
     "description": "Gérez votre connectivité de passerelle LoRaWAN"
   },
   "support": {
-    "title": "Support",
-    "description": "Obtenez de l'aide et du support technique"
+    "title": "Support et rapports de bugs",
+    "back": "Retour",
+    "pageTitle": "Comment pouvons-nous vous aider ?",
+    "pageSubtitle": "Nous sommes la pour vous accompagner a chaque etape.",
+    "submitTicket": "Soumettre un ticket",
+    "myTickets": "Mes tickets",
+    "form": {
+      "title": "Titre",
+      "titlePlaceholder": "Bref résumé du problème",
+      "description": "Description",
+      "descriptionPlaceholder": "Décrivez le problème en détail",
+      "category": "Catégorie",
+      "priority": "Priorité",
+      "submit": "Envoyer le ticket"
+    },
+    "categories": {
+      "bug": "Bug",
+      "device": "Appareil",
+      "gateway": "Passerelle",
+      "alert": "Alerte",
+      "other": "Autre"
+    },
+    "priorities": {
+      "low": "Faible",
+      "medium": "Moyenne",
+      "high": "Élevée",
+      "critical": "Critique"
+    },
+    "statuses": {
+      "open": "Ouvert",
+      "in_progress": "En cours",
+      "resolved": "Résolu",
+      "closed": "Fermé"
+    },
+    "searchPlaceholder": "Rechercher par titre ou ID du ticket...",
+    "filters": {
+      "status": "Statut",
+      "category": "Catégorie",
+      "priority": "Priorité",
+      "allStatuses": "Tous les statuts",
+      "allCategories": "Toutes les catégories",
+      "allPriorities": "Toutes les priorités"
+    },
+    "columns": {
+      "ticket": "Ticket",
+      "user": "Utilisateur",
+      "category": "Catégorie",
+      "priority": "Priorité",
+      "status": "Statut",
+      "createdAt": "Créé",
+      "actions": "Actions"
+    },
+    "actions": {
+      "viewDetails": "Voir les détails",
+      "changeStatus": "Modifier le statut",
+      "editNote": "Modifier la note",
+      "delete": "Supprimer"
+    },
+    "dialog": {
+      "noteTitle": "Note administrateur",
+      "noteDescription": "Mettre à jour la note interne de ce ticket.",
+      "deleteTitle": "Supprimer le ticket ?"
+    },
+    "showing": "Affichage de {count} sur {total} tickets",
+    "noTickets": "Aucun ticket trouvé",
+    "error": "Impossible de charger les tickets.",
+    "adminNote": "Note administrateur",
+    "deleteConfirm": "Cette action supprimera définitivement ce ticket.",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "close": "Fermer",
+    "prev": "Précédent",
+    "next": "Suivant",
+    "refresh": "Actualiser",
+    "labels": {
+      "category": "Catégorie",
+      "priority": "Priorité",
+      "submitted": "Soumis le",
+      "description": "Description"
+    },
+    "landing": {
+      "title": "Comment pouvons-nous aider ?",
+      "subtitle": "Choisissez une option ci-dessous",
+      "newTicket": "Soumettre un ticket",
+      "newTicketDesc": "Signaler un bug ou un problème système",
+      "myTickets": "Mes tickets",
+      "myTicketsDesc": "Suivez vos demandes envoyées",
+      "liveChat": "Chat en direct",
+      "liveChatDesc": "Discutez avec un administrateur disponible"
+    },
+    "chat": {
+      "title": "Chat en direct",
+      "available": "Un administrateur est en ligne",
+      "availableWithName": "{name} est en ligne",
+      "unavailable": "Aucun administrateur n'est actuellement en ligne",
+      "unavailableHint": "Soumettez un ticket et nous reviendrons vers vous.",
+      "placeholder": "Tapez votre message...",
+      "send": "Envoyer",
+      "agentName": "Agent de support",
+      "you": "Vous",
+      "empty": "Commencez la conversation en envoyant un message."
+    },
+    "detail": {
+      "submittedBy": "Soumis par {name} · {email}",
+      "createdAt": "Créé le {date}",
+      "updateStatus": "Mettre à jour le statut",
+      "internalNote": "Note interne",
+      "internalNotePlaceholder": "Ajouter des notes de résolution...",
+      "saveChanges": "Enregistrer les modifications"
+    },
+    "toasts": {
+      "created": "Ticket envoyé avec succès.",
+      "updated": "Ticket mis à jour avec succès.",
+      "deleted": "Ticket supprimé avec succès."
+    }
   },
   "home": {
     "title": "Surveillance IoT de l'eau",

@@ -49,3 +49,34 @@
 - Added shared typed contracts for EauSure responses and sensor documents.
 - Added MQTT-backed live hook with fallback polling when broker/WebSocket is unavailable.
 - Replaced static dashboard and alerts placeholders with real EauSure-powered data rendering and refresh controls.
+
+## Step 7 - Ticket Support System
+- Added a dedicated ticket model and ticket ID generator in `lib/models/Ticket.ts`.
+- Added authenticated ticket APIs for create, list, mine, update, and delete flows under `/api/tickets`.
+- Added an explicit middleware exclusion entry for `/api/tickets`.
+- Replaced the user support placeholder with a localized ticket submission form and personal ticket list.
+- Replaced the admin diagnostics stub with a localized ticket management table, detail sheet, and admin actions.
+- Added support namespace translations for English, French, and Arabic.
+
+## Step 8 - Counter Conflict Fix
+- Fixed MongoDB counter increment logic in `/api/tickets` to avoid conflicting update operators on `seq`.
+- Switched to an aggregation pipeline update in `findOneAndUpdate` for first-write initialization plus subsequent increments.
+
+## Step 9 - User Support UX and Live Chat
+- Redesigned the user support page to open on a landing with animated option cards for tickets and chat.
+- Added animated view transitions and back navigation for landing, new ticket, my tickets, and live chat views.
+- Improved user ticket list prominence and added a responsive detail dialog with section spacing and scrollable description.
+- Added live chat APIs (`/api/chat/mine`, `/api/chat/send`) and admin online availability API (`/api/admin/online`).
+- Added user chat model and support i18n keys for landing/chat in English, French, and Arabic.
+
+## Step 10 - Admin Ticket Detail Redesign
+- Rebuilt the admin ticket detail drawer layout in `app/[locale]/admin/diagnose-problems/page.tsx` with improved hierarchy and spacing.
+- Added priority accent bar, responsive meta grid, separators, animated content entry, and structured admin actions section.
+- Kept all user-facing text sourced from `useTranslations('support')` with added detail-specific i18n keys in EN/FR/AR.
+
+## Step 11 - Support Layout and Chat Privacy Hardening
+- Reworked `app/[locale]/dashboard/support/page.tsx` into a centered dashboard layout with always-visible heading, balanced spacing, landing card grid, and consistent sub-view panel containers.
+- Updated live chat UI to a full messaging layout with animated view transitions, auto-scroll anchor behavior, and locale-aware RTL/LTR row direction handling.
+- Enforced admin anonymity in user chat rendering by always showing localized generic agent identity and shield avatar for admin messages.
+- Updated `/api/admin/online` to return only `{ available }` without any admin-identifying fields.
+- Added new support i18n keys (`pageTitle`, `pageSubtitle`, `chat.agentName`) in EN/FR/AR locale message files.
