@@ -119,5 +119,164 @@
       "unsavedMessage": "Vous avez modifié vos paramètres. Enregistrez ou annulez les modifications pour continuer.",
       "savedMessage": "Vos paramètres sont à jour."
     }
+  },
+  "admin": {
+    "title": "Tableau de bord administrateur",
+    "description": "Administration centralisée pour les utilisateurs, les opérations, le déploiement et les diagnostics.",
+    "manageUsers": {
+      "title": "Gérer les utilisateurs",
+      "description": "Examinez les comptes d'utilisateurs, les attributions de rôles et le contrôle d'accès.",
+      "workspace": "Espace de travail de gestion des utilisateurs réservé aux administrateurs",
+      "action": "Utilisez cette page pour gérer les comptes, les attributions de rôles et les décisions d'accès."
+    },
+    "superviseSystem": {
+      "title": "Superviser le système",
+      "description": "Suivez l'état du système et les indicateurs de santé opérationnelle.",
+      "workspace": "Espace de travail de supervision système réservé aux administrateurs",
+      "action": "Surveillez les performances du système, l'utilisation des ressources et les mesures opérationnelles."
+    },
+    "deployUpdates": {
+      "title": "Déployer les mises à jour",
+      "description": "Coordonnez les déploiements et surveillez les déploiements de mises à jour.",
+      "workspace": "Espace de travail de déploiement réservé aux administrateurs",
+      "action": "Planifiez les versions, déclenchez les déploiements de mises à jour et validez la préparation au déploiement."
+    },
+    "diagnoseProblems": {
+      "title": "Diagnostiquer les problèmes",
+      "description": "Enquêter sur les incidents et exécuter les procédures de diagnostic.",
+      "workspace": "Espace de travail de diagnostic réservé aux administrateurs",
+      "action": "Enquêter sur les incidents, exécuter les diagnostics système et résoudre les problèmes techniques."
+    }
+  },
+  "manageUsers": {
+    "title": "Gérer les utilisateurs",
+    "description": "Recherchez, filtrez et gérez les accès des utilisateurs de la plateforme.",
+    "searchPlaceholder": "Rechercher par nom ou e-mail...",
+    "filterRole": "Filtrer par rôle",
+    "filterStatus": "Filtrer par statut",
+    "allRoles": "Tous les rôles",
+    "allStatuses": "Tous les statuts",
+    "columns": {
+      "user": "Utilisateur",
+      "email": "E-mail",
+      "role": "Rôle",
+      "status": "Statut",
+      "createdAt": "Créé le",
+      "actions": "Actions"
+    },
+    "roles": {
+      "admin": "Administrateur",
+      "operator": "Opérateur"
+    },
+    "statuses": {
+      "active": "Actif",
+      "suspended": "Suspendu"
+    },
+    "actions": {
+      "changeRole": "Changer le rôle",
+      "suspend": "Suspendre",
+      "reactivate": "Réactiver",
+      "delete": "Supprimer l'utilisateur"
+    },
+    "dialog": {
+      "deleteTitle": "Supprimer cet utilisateur ?",
+      "suspendTitle": "Suspendre cet utilisateur ?",
+      "reactivateTitle": "Réactiver cet utilisateur ?",
+      "changeRoleTitle": "Changer le rôle de cet utilisateur ?"
+    },
+    "confirmDelete": "Cette action supprimera définitivement {name} du système.",
+    "confirmSuspend": "{name} perdra l'accès jusqu'à sa réactivation.",
+    "confirmReactivate": "{name} retrouvera l'accès immédiatement.",
+    "confirmPromote": "{name} recevra un accès administrateur.",
+    "confirmDemote": "{name} sera limité à un accès opérateur.",
+    "cannotEditSelf": "Vous ne pouvez pas modifier votre propre compte.",
+    "noUsers": "Aucun utilisateur trouvé.",
+    "error": "Impossible de charger les utilisateurs.",
+    "retry": "Réessayer",
+    "cancel": "Annuler",
+    "working": "Traitement...",
+    "showing": "Affichage de {count} sur {total} utilisateurs",
+    "toast": {
+      "deleted": "Utilisateur supprimé avec succès.",
+      "roleUpdated": "Rôle utilisateur mis à jour.",
+      "statusUpdated": "Statut utilisateur mis à jour."
+    }
+  },
+  "alerts": {
+    "title": "Alertes",
+    "description": "Suivez les événements critiques, les avertissements et les informations.",
+    "feed": "Flux d'alertes",
+    "feedDescription": "Dernières alertes détectées sur vos appareils",
+    "criticalAlerts": "Alertes critiques",
+    "warnings": "Avertissements",
+    "totalActive": "Total actif",
+    "columns": {
+      "id": "ID",
+      "type": "Type",
+      "severity": "Sévérité",
+      "device": "Appareil",
+      "message": "Message",
+      "time": "Heure"
+    }
+  },
+  "wells": {
+    "title": "Puits et réservoirs",
+    "description": "Aucun site de surveillance configuré",
+    "empty": "Aucun puits configuré",
+    "instruction": "Déployez des nœuds de capteurs flottants dans vos puits et réservoirs, puis enregistrez-les dans le système pour commencer à surveiller les paramètres de qualité de l'eau."
+  },
+  "updates": {
+    "title": "Mises à jour du firmware des appareils",
+    "description": "Gérez et déployez les mises à jour du firmware sur vos appareils",
+    "firmware": "Gestion du firmware",
+    "columns": {
+      "device": "Appareil",
+      "current": "Version actuelle",
+      "available": "Version disponible",
+      "status": "Statut",
+      "lastCheck": "Dernier contrôle"
+    },
+    "statuses": {
+      "updateAvailable": "Mise à jour disponible",
+      "upToDate": "À jour",
+      "pending": "En attente"
+    }
+  },
+  "devices": {
+    "title": "Gestion des appareils",
+    "description": "Gérez vos appareils et capteurs IoT"
+  },
+  "gateway": {
+    "title": "Passerelle",
+    "description": "Gérez votre connectivité de passerelle LoRaWAN"
+  },
+  "support": {
+    "title": "Support",
+    "description": "Obtenez de l'aide et du support technique"
+  },
+  "home": {
+    "title": "Surveillance IoT de l'eau",
+    "subtitle": "Plateforme d'analyse autonome de la qualité de l'eau",
+    "signIn": "Se connecter",
+    "createAccount": "Créer un compte",
+    "features": "Caractéristiques de la plateforme",
+    "auth": {
+      "signin": {
+        "title": "Se connecter",
+        "description": "Connectez-vous à votre compte"
+      },
+      "signup": {
+        "title": "Créer un compte",
+        "description": "Créer un nouveau compte"
+      },
+      "forgot": {
+        "title": "Mot de passe oublié",
+        "description": "Réinitialisez votre mot de passe"
+      },
+      "reset": {
+        "title": "Réinitialiser le mot de passe",
+        "description": "Entrez votre nouveau mot de passe"
+      }
+    }
   }
 }

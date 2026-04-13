@@ -9,6 +9,7 @@ export interface User {
   name: string;
   email: string;
   role?: 'user' | 'admin';
+  status?: 'active' | 'suspended';
   password?: string;
   image?: string;
   emailVerified?: Date;
@@ -75,6 +76,7 @@ export async function createUser(
       name,
       email,
       role,
+      status: 'active',
       password: hashedPassword,
       createdAt: new Date(),
       updatedAt: new Date(),

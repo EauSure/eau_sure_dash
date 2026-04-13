@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { DashboardLayout } from '@/components/dashboard-layout';
 import { AnimatedKPICard } from '@/components/animated-kpi-card';
 import { SectionCard } from '@/components/ui/section-card';
@@ -27,6 +28,7 @@ import {
 export default function DashboardPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
+  const t = useTranslations('dashboard');
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -70,9 +72,9 @@ export default function DashboardPage() {
     <DashboardLayout>
       <div className="space-y-6">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">Aperçu</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
           <p className="text-muted-foreground">
-            Visualisez votre tableau de bord, consultez l&apos;historique et suivez les performances.
+            {t('title')}: Visualize dashboard, review history, and track performance.
           </p>
         </div>
 
@@ -87,7 +89,7 @@ export default function DashboardPage() {
             <TabsContent key={rangeKey} value={rangeKey} className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <AnimatedKPICard
-                  title="Water Quality"
+                  title={t('kpi.waterStatus')}
                   value={rangeCards[rangeKey].quality}
                   icon={Activity}
                   description={`${rangeKey} trend`}
@@ -101,7 +103,7 @@ export default function DashboardPage() {
                   index={index * 4 + 1}
                 />
                 <AnimatedKPICard
-                  title="Active Alerts"
+                  title={t('kpi.activeAlerts')}
                   value={rangeCards[rangeKey].alerts}
                   icon={AlertTriangle}
                   description="Requires attention"
@@ -120,8 +122,8 @@ export default function DashboardPage() {
         </Tabs>
 
         <SectionCard
-          title="Historique"
-          description="Derniers evenements du systeme"
+          title="History"
+          description="Latest system events"
           headerAction={<History className="h-5 w-5 text-muted-foreground" />}
         >
           <Table>

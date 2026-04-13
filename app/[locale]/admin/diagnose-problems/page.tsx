@@ -1,17 +1,20 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { AdminLayout } from '@/components/admin-layout';
 import { SectionCard } from '@/components/ui/section-card';
 
 export default function DiagnoseProblemsPage() {
+  const t = useTranslations('admin.diagnoseProblems');
+
   return (
     <AdminLayout>
       <SectionCard
-        title="Diagnose Problems"
-        description="Admin-only diagnostics workspace"
+        title={t('title')}
+        description={t('workspace')}
       >
         <p className="text-sm text-muted-foreground">
-          Investigate incidents, review anomalies, and coordinate corrective actions.
+          {t('action')}
         </p>
       </SectionCard>
     </AdminLayout>

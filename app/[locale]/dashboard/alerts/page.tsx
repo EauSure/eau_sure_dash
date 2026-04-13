@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { DashboardLayout } from '@/components/dashboard-layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +15,8 @@ import {
 import { AlertTriangle, Bell, ShieldAlert } from 'lucide-react';
 
 export default function AlertsPage() {
+  const t = useTranslations('alerts');
+
   const alerts = [
     {
       id: 'ALR-104',
@@ -45,9 +48,9 @@ export default function AlertsPage() {
     <DashboardLayout>
       <div className="space-y-6">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">Alertes</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
           <p className="text-muted-foreground">
-            Suivez les alertes critiques, avertissements et evenements d&apos;information.
+            {t('description')}
           </p>
         </div>
 
@@ -55,7 +58,7 @@ export default function AlertsPage() {
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Critical Alerts
+                {t('criticalAlerts')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -65,7 +68,7 @@ export default function AlertsPage() {
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Warnings
+                {t('warnings')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -75,7 +78,7 @@ export default function AlertsPage() {
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total Active
+                {t('totalActive')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -88,9 +91,9 @@ export default function AlertsPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Bell className="h-5 w-5 text-muted-foreground" />
-              Alert Feed
+              {t('feed')}
             </CardTitle>
-            <CardDescription>Dernieres alertes detectees sur vos dispositifs</CardDescription>
+            <CardDescription>{t('feedDescription')}</CardDescription>
           </CardHeader>
           <CardContent>
             <Table>

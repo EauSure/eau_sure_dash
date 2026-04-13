@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -42,6 +42,7 @@ type ProfileFormValues = z.infer<typeof profileFormSchema>;
 export default function ProfilePage() {
   const { data: session, status, update } = useSession();
   const router = useRouter();
+  const params = useParams<{ locale?: string | string[] }>();
   const t = useTranslations('profile');
   const tCommon = useTranslations('common');
   const [isLoading, setIsLoading] = useState(true);
@@ -60,6 +61,10 @@ export default function ProfilePage() {
     },
   });
 
+  const locale = Array.isArray(params?.locale)
+    ? (params.locale[0] ?? 'fr')
+    : (params?.locale ?? 'fr');
+
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/fr/auth/signin');
@@ -74,10 +79,24 @@ export default function ProfilePage() {
   const fetchProfile = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch('/api/user/me');
-      
+      const response = await fetch('/api/user/me', {
+        method: 'GET',
+        credentials: 'include',
+        cache: 'no-store',
+      });
+
+      if (response.status === 401) {
+        router.push(`/${locale}/auth/signin`);
+        return;
+      }
+
       if (!response.ok) {
-        throw new Error('Failed to fetch profile');
+        const errorPayload = await response.json().catch(() => ({}));
+        const message =
+          typeof errorPayload?.error === 'string'
+            ? errorPayload.error
+            : `HTTP ${response.status}`;
+        throw new Error(message);
       }
 
       const data: CompleteUserProfile = await response.json();
@@ -93,8 +112,9 @@ export default function ProfilePage() {
         phone: data.phone || '',
       });
     } catch (error) {
-      console.error('Error fetching profile:', error);
-      toast.error('Failed to load profile');
+      console.error('Failed to fetch profile:', error);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }

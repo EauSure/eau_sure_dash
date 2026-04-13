@@ -1,17 +1,20 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { AdminLayout } from '@/components/admin-layout';
 import { SectionCard } from '@/components/ui/section-card';
 
 export default function SuperviseSystemPage() {
+  const t = useTranslations('admin.superviseSystem');
+
   return (
     <AdminLayout>
       <SectionCard
-        title="Supervise System"
-        description="Admin-only system supervision workspace"
+        title={t('title')}
+        description={t('workspace')}
       >
         <p className="text-sm text-muted-foreground">
-          Monitor platform-wide health, uptime signals, and system-level activity.
+          {t('action')}
         </p>
       </SectionCard>
     </AdminLayout>

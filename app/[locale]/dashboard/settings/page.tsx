@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { useRouter, usePathname } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
 import { useTranslations, useLocale } from 'next-intl';
+import { useRouter, usePathname } from '@/i18n/routing';
 import { DashboardLayout } from '@/components/dashboard-layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -109,10 +109,24 @@ export default function SettingsPage() {
   const fetchProfile = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch('/api/user/me');
-      
+      const response = await fetch('/api/user/me', {
+        method: 'GET',
+        credentials: 'include',
+        cache: 'no-store',
+      });
+
+      if (response.status === 401) {
+        router.push('/auth/signin', { locale: currentLocale });
+        return;
+      }
+
       if (!response.ok) {
-        throw new Error('Failed to fetch profile');
+        const errorPayload = await response.json().catch(() => ({}));
+        const message =
+          typeof errorPayload?.error === 'string'
+            ? errorPayload.error
+            : `HTTP ${response.status}`;
+        throw new Error(message);
       }
 
       const data: CompleteUserProfile = await response.json();
@@ -126,8 +140,9 @@ export default function SettingsPage() {
         language: data.preferences.language,
       });
     } catch (error) {
-      console.error('Error fetching settings:', error);
-      toast.error('Failed to load settings');
+      console.error('Failed to fetch profile:', error);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -180,12 +195,8 @@ export default function SettingsPage() {
 
       toast.success(tCommon('allChangesSaved'));
       
-      // Navigate to new locale path if language changed
       if (languageChanged) {
-        // Replace locale in pathname
-        const newPathname = pathname.replace(/^\/(en|fr|ar)/, `/${values.language}`);
-        router.replace(newPathname || `/${values.language}/dashboard/settings`);
-        router.refresh();
+        router.replace(pathname, { locale: values.language });
       }
     } catch (error) {
       console.error('Error updating settings:', error);

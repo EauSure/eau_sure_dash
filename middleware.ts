@@ -1,25 +1,53 @@
-import createMiddleware from 'next-intl/middleware';
 import { getToken } from 'next-auth/jwt';
 import { NextRequest, NextResponse } from 'next/server';
 
 const locales = ['en', 'fr', 'ar'] as const;
+const defaultLocale = 'fr';
+const authPages = [
+  '/signin',
+  '/signup',
+  '/forgot-password',
+  '/reset-password',
+  '/forget-password',
+];
 
-const intlMiddleware = createMiddleware({
-  locales,
-  defaultLocale: 'fr',
-  localePrefix: 'as-needed'
-});
-
-function getLocaleFromPath(pathname: string): string {
+function getLocaleFromPath(pathname: string): string | null {
   const firstSegment = pathname.split('/')[1];
   return locales.includes(firstSegment as (typeof locales)[number])
     ? firstSegment
-    : 'fr';
+    : null;
+}
+
+function isValidLocale(locale: any): locale is typeof locales[number] {
+  return locales.includes(locale);
+}
+
+function isAuthPage(pathname: string): boolean {
+  return authPages.some((page) => pathname.includes(page));
 }
 
 export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const locale = getLocaleFromPath(pathname);
+
+  if (pathname.startsWith('/api/')) {
+    return NextResponse.next();
+  }
+
+  let locale = getLocaleFromPath(pathname);
+  const localeCookie = request.cookies.get('NEXT_LOCALE')?.value;
+
+  if (!locale) {
+    const preferredLocale = localeCookie || defaultLocale;
+    if (isValidLocale(preferredLocale)) {
+      const prefixedPath = pathname === '/' ? `/${preferredLocale}` : `/${preferredLocale}${pathname}`;
+      return NextResponse.redirect(new URL(prefixedPath, request.url));
+    }
+    locale = defaultLocale;
+  }
+
+  if (isAuthPage(pathname)) {
+    return NextResponse.next();
+  }
 
   const isDashboardRoute = pathname.startsWith(`/${locale}/dashboard`) || pathname.startsWith('/dashboard');
   const isAdminRoute =
@@ -46,9 +74,11 @@ export default async function middleware(request: NextRequest) {
     }
   }
 
-  return intlMiddleware(request);
+  return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/((?!api|_next|.*\\..*).*)']
+  matcher: [
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+  ]
 };

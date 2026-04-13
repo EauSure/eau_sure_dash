@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth-options';
+import { getToken } from 'next-auth/jwt';
 import { getOrCreateUserProfile, updateUserProfile } from '@/lib/user-profile';
 import { getUserByEmail } from '@/lib/user';
 import type { CompleteUserProfile } from '@/types/user-profile';
@@ -31,16 +30,17 @@ const updateProfileSchema = z.object({
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
+    const email = typeof token?.email === 'string' ? token.email : null;
 
-    if (!session || !session.user?.email) {
+    if (!email) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
-    const userId = session.user.email;
+    const userId = email;
     
     // Get user data from NextAuth users collection
     const user = await getUserByEmail(userId);
@@ -75,9 +75,10 @@ export async function GET(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
+    const email = typeof token?.email === 'string' ? token.email : null;
 
-    if (!session || !session.user?.email) {
+    if (!email) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -95,7 +96,7 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    const userId = session.user.email;
+    const userId = email;
     
     // Update both collections as needed
     const updatedProfile = await updateUserProfile(userId, validationResult.data);

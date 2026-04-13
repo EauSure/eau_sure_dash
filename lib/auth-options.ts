@@ -38,6 +38,10 @@ export const authOptions: NextAuthOptions = {
           throw new Error('Invalid email or password');
         }
 
+        if (user.status === 'suspended') {
+          throw new Error('Your account is suspended. Contact an administrator.');
+        }
+
         const actualRole: 'user' | 'admin' = user.role === 'admin' ? 'admin' : 'user';
 
         if (requestedRole === 'admin' && actualRole !== 'admin') {

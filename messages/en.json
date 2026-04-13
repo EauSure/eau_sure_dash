@@ -121,5 +121,164 @@
       "unsavedMessage": "You have modified your settings. Save or discard changes to continue.",
       "savedMessage": "Your settings are up to date."
     }
+  },
+  "admin": {
+    "title": "Admin Dashboard",
+    "description": "Centralized administration for users, operations, deployment, and diagnostics.",
+    "manageUsers": {
+      "title": "Manage Users",
+      "description": "Review user accounts, role assignments, and access control.",
+      "workspace": "Admin-only user management workspace",
+      "action": "Use this page to manage accounts, role assignments, and access decisions."
+    },
+    "superviseSystem": {
+      "title": "Supervise System",
+      "description": "Track system status and operational health indicators.",
+      "workspace": "Admin-only system supervision workspace",
+      "action": "Monitor system performance, resource utilization, and operational metrics."
+    },
+    "deployUpdates": {
+      "title": "Deploy Updates",
+      "description": "Coordinate deployments and monitor update rollouts.",
+      "workspace": "Admin-only deployment workspace",
+      "action": "Plan releases, trigger update rollouts, and validate deployment readiness."
+    },
+    "diagnoseProblems": {
+      "title": "Diagnose Problems",
+      "description": "Investigate incidents and run diagnostic procedures.",
+      "workspace": "Admin-only diagnostics workspace",
+      "action": "Investigate incidents, run system diagnostics, and resolve technical issues."
+    }
+  },
+  "manageUsers": {
+    "title": "Manage Users",
+    "description": "Search, filter, and manage user access across the platform.",
+    "searchPlaceholder": "Search by name or email...",
+    "filterRole": "Filter by role",
+    "filterStatus": "Filter by status",
+    "allRoles": "All roles",
+    "allStatuses": "All statuses",
+    "columns": {
+      "user": "User",
+      "email": "Email",
+      "role": "Role",
+      "status": "Status",
+      "createdAt": "Created",
+      "actions": "Actions"
+    },
+    "roles": {
+      "admin": "Admin",
+      "operator": "Operator"
+    },
+    "statuses": {
+      "active": "Active",
+      "suspended": "Suspended"
+    },
+    "actions": {
+      "changeRole": "Change role",
+      "suspend": "Suspend",
+      "reactivate": "Reactivate",
+      "delete": "Delete user"
+    },
+    "dialog": {
+      "deleteTitle": "Delete user?",
+      "suspendTitle": "Suspend user?",
+      "reactivateTitle": "Reactivate user?",
+      "changeRoleTitle": "Change user role?"
+    },
+    "confirmDelete": "This will permanently remove {name} from the system.",
+    "confirmSuspend": "{name} will lose access until reactivated.",
+    "confirmReactivate": "{name} will regain access immediately.",
+    "confirmPromote": "{name} will gain admin-level access.",
+    "confirmDemote": "{name} will be changed to operator access.",
+    "cannotEditSelf": "You cannot modify your own account.",
+    "noUsers": "No users found.",
+    "error": "Failed to load users.",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "working": "Working...",
+    "showing": "Showing {count} of {total} users",
+    "toast": {
+      "deleted": "User deleted successfully.",
+      "roleUpdated": "User role updated successfully.",
+      "statusUpdated": "User status updated successfully."
+    }
+  },
+  "alerts": {
+    "title": "Alerts",
+    "description": "Track critical, warnings, and informational events.",
+    "feed": "Alert Feed",
+    "feedDescription": "Latest detected alerts on your devices",
+    "criticalAlerts": "Critical Alerts",
+    "warnings": "Warnings",
+    "totalActive": "Total Active",
+    "columns": {
+      "id": "ID",
+      "type": "Type",
+      "severity": "Severity",
+      "device": "Device",
+      "message": "Message",
+      "time": "Time"
+    }
+  },
+  "wells": {
+    "title": "Wells & Reservoirs",
+    "description": "No monitoring sites configured",
+    "empty": "No Wells Configured",
+    "instruction": "Deploy buoy sensor nodes to your wells and reservoirs, then register them in the system to start monitoring water quality parameters."
+  },
+  "updates": {
+    "title": "Device Firmware Updates",
+    "description": "Manage and deploy firmware updates to your devices",
+    "firmware": "Firmware Management",
+    "columns": {
+      "device": "Device",
+      "current": "Current Version",
+      "available": "Available Version",
+      "status": "Status",
+      "lastCheck": "Last Check"
+    },
+    "statuses": {
+      "updateAvailable": "Update Available",
+      "upToDate": "Up to date",
+      "pending": "Pending"
+    }
+  },
+  "devices": {
+    "title": "Device Management",
+    "description": "Manage your IoT devices and sensors"
+  },
+  "gateway": {
+    "title": "Gateway",
+    "description": "Manage your LoRaWAN gateway connectivity"
+  },
+  "support": {
+    "title": "Support",
+    "description": "Get help and technical support"
+  },
+  "home": {
+    "title": "IoT Water Monitoring",
+    "subtitle": "Autonomous water quality analysis platform",
+    "signIn": "Sign In",
+    "createAccount": "Create Account",
+    "features": "Platform Features",
+    "auth": {
+      "signin": {
+        "title": "Sign In",
+        "description": "Sign in to your account"
+      },
+      "signup": {
+        "title": "Create Account",
+        "description": "Create a new account"
+      },
+      "forgot": {
+        "title": "Forgot Password",
+        "description": "Reset your password"
+      },
+      "reset": {
+        "title": "Reset Password",
+        "description": "Enter your new password"
+      }
+    }
   }
 }

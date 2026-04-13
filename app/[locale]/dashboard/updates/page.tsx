@@ -46,6 +46,8 @@ export default async function UpdatesPage() {
     },
   ];
 
+  // Note: This is a server component. Client translations will be applied
+  // through the DashboardLayout wrapper
   return (
     <DashboardLayout>
       <div className="space-y-6">

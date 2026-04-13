@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { getServerSession } from 'next-auth/next';
+import { getTranslations } from 'next-intl/server';
 import { authOptions } from '@/lib/auth-options';
 import { redirect } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -9,6 +10,7 @@ import { Check } from 'lucide-react';
 
 export default async function Home() {
   const session = await getServerSession(authOptions);
+  const t = await getTranslations('home');
 
   if (session) {
     redirect(session.user.role === 'admin' ? '/admin' : '/dashboard');
@@ -22,10 +24,10 @@ export default async function Home() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center space-y-2">
           <CardTitle className="text-3xl font-bold">
-            IoT Water Monitoring
+            {t('title')}
           </CardTitle>
           <CardDescription>
-            Autonomous water quality analysis platform
+            {t('subtitle')}
           </CardDescription>
         </CardHeader>
 
@@ -33,19 +35,19 @@ export default async function Home() {
           <div className="space-y-3">
             <Link href="/fr/auth/signin" className="block">
               <Button className="w-full" size="lg">
-                Sign In
+                {t('signIn')}
               </Button>
             </Link>
 
             <Link href="/auth/signup" className="block">
               <Button variant="outline" className="w-full" size="lg">
-                Create Account
+                {t('createAccount')}
               </Button>
             </Link>
           </div>
 
           <div className="pt-6 border-t">
-            <h3 className="text-sm font-semibold mb-3">Platform Features</h3>
+            <h3 className="text-sm font-semibold mb-3">{t('features')}</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li className="flex items-center">
                 <Check className="h-4 w-4 text-primary mr-2" />
