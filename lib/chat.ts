@@ -6,9 +6,11 @@ export type SerializedChatMessage = {
   timestamp: string;
 };
 
+export type SerializedChatStatus = 'active' | 'suspended' | 'waiting' | 'ended' | null;
+
 export type SerializedChat = {
   chatId: string | null;
-  status: Chat['status'] | null;
+  status: SerializedChatStatus;
   reason: string | null;
   startedAt: string | null;
   endedAt: string | null;
