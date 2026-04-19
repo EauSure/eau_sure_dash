@@ -298,6 +298,8 @@ export default function SupportPage() {
     };
   }, [chatInput, chatSession, currentView, status]);
 
+  const chatMessages: ChatMessage[] = useMemo(() => chatSession?.messages ?? [], [chatSession?.messages]);
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages]);
@@ -373,8 +375,6 @@ export default function SupportPage() {
     setSelectedTicket(ticket);
     setDetailOpen(true);
   };
-
-  const chatMessages: ChatMessage[] = useMemo(() => chatSession?.messages ?? [], [chatSession?.messages]);
 
   if (status === 'loading') {
     return (
