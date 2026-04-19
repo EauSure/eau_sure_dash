@@ -61,11 +61,11 @@ export async function PATCH(
       { returnDocument: 'after' }
     );
 
-    if (!result.value) {
+    if (!result) {
       return NextResponse.json({ error: 'Node not found' }, { status: 404 });
     }
 
-    const node = result.value as {
+    const node = result as {
       _id: ObjectId;
       ownerId: ObjectId;
       lastSeen?: Date | null;

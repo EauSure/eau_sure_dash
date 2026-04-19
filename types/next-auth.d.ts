@@ -10,7 +10,7 @@ declare module 'next-auth' {
 
   interface User {
     id: string;
-    role: 'user' | 'admin';
+    role?: 'user' | 'admin';
     rememberMe?: boolean;
     fingerprint?: string;
   }

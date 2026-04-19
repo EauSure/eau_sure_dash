@@ -32,9 +32,10 @@ export async function createPasswordResetToken(email: string): Promise<string> {
   const client = await clientPromise;
   const db = client.db(DB_NAME);
   const collection = db.collection<PasswordResetToken>(RESET_COLLECTION);
+  const collectionForInsert = db.collection<Omit<PasswordResetToken, '_id'>>(RESET_COLLECTION);
 
   await collection.deleteMany({ email });
-  await collection.insertOne({
+  await collectionForInsert.insertOne({
     email,
     tokenHash,
     createdAt: now,

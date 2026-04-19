@@ -29,7 +29,7 @@ function getLocaleFromPath(pathname: string): string | null {
 }
 
 function isValidLocale(locale: string | null | undefined): locale is typeof locales[number] {
-  return locales.includes(locale);
+  return !!locale && locales.includes(locale as (typeof locales)[number]);
 }
 
 function stripLocalePrefix(pathname: string): string {

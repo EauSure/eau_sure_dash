@@ -299,6 +299,7 @@ export default function SupportPage() {
   }, [chatInput, chatSession, currentView, status]);
 
   const chatMessages: ChatMessage[] = useMemo(() => chatSession?.messages ?? [], [chatSession?.messages]);
+  const shouldShowRequestPane = !chatSession || chatSession.status === 'ended';
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -661,7 +662,7 @@ export default function SupportPage() {
                     </div>
                   </div>
 
-                  {!chatSession || chatSession.status === 'ended' ? (
+                  {shouldShowRequestPane ? (
                     <div className="grid gap-5 p-5 sm:p-6 lg:grid-cols-[1.15fr_0.85fr]">
                       <div className="space-y-4">
                         <div className="space-y-2">

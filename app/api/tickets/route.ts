@@ -104,19 +104,20 @@ function buildTextSearch(search: string | null) {
 }
 
 async function resolveCurrentUser(token: Awaited<ReturnType<typeof getToken>>) {
-  const email = typeof token?.email === 'string' ? token.email : null;
+  const tokenPayload = token && typeof token === 'object' ? token : null;
+  const email = typeof tokenPayload?.email === 'string' ? tokenPayload.email : null;
   if (!email) {
     return null;
   }
 
   const userFromDb = await getUserByEmail(email);
-  const userId = parseObjectId(typeof token?.id === 'string' ? token.id : null) ?? userFromDb?._id ?? null;
+  const userId = parseObjectId(typeof tokenPayload?.id === 'string' ? tokenPayload.id : null) ?? userFromDb?._id ?? null;
 
   return {
     email,
     name:
-      typeof token?.name === 'string' && token.name.trim()
-        ? token.name
+      typeof tokenPayload?.name === 'string' && tokenPayload.name.trim()
+        ? tokenPayload.name
         : userFromDb?.name ?? email,
     userId,
   };
@@ -144,6 +145,7 @@ export async function POST(req: NextRequest) {
     const client = await getClient();
     const db = client.db(process.env.MONGODB_DB || 'water_quality');
     const tickets = db.collection<Ticket>('tickets');
+    const ticketsForInsert = db.collection<Omit<Ticket, '_id'>>('tickets');
     const counters = db.collection<{ _id: string; seq: number }>('counters');
 
     const counter = await counters.findOneAndUpdate(
@@ -164,7 +166,7 @@ export async function POST(req: NextRequest) {
       { upsert: true, returnDocument: 'after' }
     );
 
-    const ticketId = buildTicketId(counter.value?.seq ?? 1);
+    const ticketId = buildTicketId(counter?.seq ?? 1);
     const now = new Date();
 
     const record: Omit<Ticket, '_id'> = {
@@ -182,7 +184,7 @@ export async function POST(req: NextRequest) {
       updatedAt: now,
     };
 
-    const result = await tickets.insertOne(record);
+    const result = await ticketsForInsert.insertOne(record);
     const createdTicket = await tickets.findOne({ _id: result.insertedId });
 
     if (!createdTicket) {
@@ -198,8 +200,9 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+  const tokenPayload = token && typeof token === 'object' ? token : null;
 
-  if (!token || token.role !== 'admin') {
+  if (!tokenPayload || tokenPayload.role !== 'admin') {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 

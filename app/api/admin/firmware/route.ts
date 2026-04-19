@@ -124,7 +124,7 @@ export async function POST(req: NextRequest) {
       { upsert: true, returnDocument: 'after' }
     );
 
-    const releaseId = buildReleaseId(counter.value?.seq ?? 1);
+    const releaseId = buildReleaseId(counter?.seq ?? 1);
     const firmwareDir = path.join(process.cwd(), 'public', 'firmware');
     await mkdir(firmwareDir, { recursive: true });
 
