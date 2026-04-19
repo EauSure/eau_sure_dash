@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
 import { useTranslations, useLocale } from 'next-intl';
+import { motion } from 'framer-motion';
 import { useRouter, usePathname } from '@/i18n/routing';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -228,14 +229,15 @@ export default function SettingsPage() {
   const isDirty = form.formState.isDirty;
 
   return (
-    <div className="space-y-6 max-w-5xl">
-        {/* Header */}
-        <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
-          <p className="text-muted-foreground">
-            {t('description')}
-          </p>
-        </div>
+    <div className="min-h-[calc(100vh-64px)] bg-gray-50/70 px-5 py-8 dark:bg-background sm:px-8 sm:py-10">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-7">
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0 }}>
+          <div className="mb-6 flex flex-col gap-1">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-blue-500">EauSure · Settings</p>
+            <h1 className="text-2xl font-black tracking-tight text-gray-900 dark:text-foreground">{t('title')}</h1>
+            <p className="mt-0.5 text-xs text-gray-400 dark:text-muted-foreground">{t('description')}</p>
+          </div>
+        </motion.div>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -508,7 +510,7 @@ export default function SettingsPage() {
             </Tabs>
 
             {/* Action Bar */}
-            <Card className="border-2 border-border">
+            <Card className="relative overflow-hidden border border-gray-100 shadow-sm dark:border-border">
               <CardContent className="pt-6">
                 <div className="flex flex-col items-center justify-center gap-4">
                   <div className="text-center space-y-1">
@@ -526,17 +528,18 @@ export default function SettingsPage() {
                     <Button
                       type="button"
                       variant="outline"
+                      className="active:scale-95 transition-transform duration-100"
                       onClick={handleDiscard}
                       disabled={!isDirty || isSaving}
                     >
-                      <X className="mr-2 h-4 w-4" />
+                      <X className="me-2 h-4 w-4" />
                       {tCommon('discard')}
                     </Button>
-                    <Button type="submit" disabled={!isDirty || isSaving}>
+                    <Button type="submit" className="active:scale-95 transition-transform duration-100" disabled={!isDirty || isSaving}>
                       {isSaving ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        <Loader2 className="me-2 h-4 w-4 animate-spin" />
                       ) : (
-                        <Save className="mr-2 h-4 w-4" />
+                        <Save className="me-2 h-4 w-4" />
                       )}
                       {tCommon('save')}
                     </Button>
@@ -547,5 +550,6 @@ export default function SettingsPage() {
           </form>
         </Form>
       </div>
+    </div>
   );
 }

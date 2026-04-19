@@ -1,45 +1,30 @@
+import { ObjectId } from 'mongodb';
 import { getToken } from 'next-auth/jwt';
 import { NextRequest, NextResponse } from 'next/server';
+import Filter from 'bad-words';
+import { serializeChat } from '@/lib/chat';
 import { getClient } from '@/lib/mongodb';
 import { getUserByEmail } from '@/lib/user';
 import type { Chat } from '@/lib/models/Chat';
 import { chatSendSchema } from '@/lib/models/Chat';
 
-function serializeChat(chat: Chat | null) {
-  if (!chat) {
-    return {
-      chatId: null,
-      messages: [],
-      createdAt: null,
-    };
-  }
-
-  return {
-    chatId: chat._id.toString(),
-    messages: chat.messages.map((message) => ({
-      role: message.role,
-      text: message.text,
-      timestamp: new Date(message.timestamp).toISOString(),
-    })),
-    createdAt: new Date(chat.createdAt).toISOString(),
-  };
-}
+const filter = new Filter();
 
 export async function POST(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
   const email = typeof token?.email === 'string' ? token.email : null;
+  const role = typeof token?.role === 'string' ? token.role : null;
 
-  if (!email) {
+  if (!email && role !== 'admin') {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const currentUser = await getUserByEmail(email);
-  if (!currentUser) {
-    return NextResponse.json({ error: 'User not found' }, { status: 404 });
-  }
-
   try {
-    const body = await req.json();
+    const body = await req.json().catch(() => null);
+    if (!body || typeof body !== 'object') {
+      return NextResponse.json({ error: 'Invalid input' }, { status: 400 });
+    }
+
     const validation = chatSendSchema.safeParse(body);
 
     if (!validation.success) {
@@ -49,34 +34,52 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const currentUser = role === 'admin' ? null : await getUserByEmail(email as string);
+    if (role !== 'admin' && !currentUser) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
     const now = new Date();
     const client = await getClient();
     const db = client.db(process.env.MONGODB_DB || 'water_quality');
     const chats = db.collection<Chat>('chats');
 
+    const userId = role === 'admin' ? typeof body.userId === 'string' ? body.userId.trim() : '' : currentUser?._id.toString();
+    if (!userId) {
+      return NextResponse.json({ error: 'Invalid user id' }, { status: 400 });
+    }
+
+    const chat = await chats.findOne({ userId: role === 'admin' ? new ObjectId(userId) : currentUser!._id });
+    if (!chat) {
+      return NextResponse.json({ error: 'Chat not found' }, { status: 404 });
+    }
+
+    if (!['active', 'suspended'].includes(chat.status)) {
+      return NextResponse.json({ error: 'Chat is not active' }, { status: 409 });
+    }
+
+    const safeText = filter.clean(validation.data.text);
+
     await chats.updateOne(
-      { userId: currentUser._id },
+      { _id: chat._id },
       {
-        $setOnInsert: {
-          userId: currentUser._id,
-          userEmail: currentUser.email,
-          createdAt: now,
-          messages: [],
+        $set: {
+          updatedAt: now,
+          ...(role === 'admin' ? { adminTyping: null } : { operatorTyping: null }),
         },
         $push: {
           messages: {
-            role: 'user',
-            text: validation.data.text,
+            role: role === 'admin' ? 'admin' : 'user',
+            text: safeText,
             timestamp: now,
           },
         },
       },
-      { upsert: true }
     );
 
-    const chat = await chats.findOne({ userId: currentUser._id });
+    const updatedChat = await chats.findOne({ _id: chat._id });
 
-    return NextResponse.json(serializeChat(chat));
+    return NextResponse.json(serializeChat(updatedChat));
   } catch (error) {
     console.error('[POST /api/chat/send]', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

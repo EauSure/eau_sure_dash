@@ -3,36 +3,72 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getClient } from '@/lib/mongodb';
 import type { User } from '@/lib/user';
 
-const ONLINE_THRESHOLD_MS = 60_000;
+const AWAY_THRESHOLD_MS = 3 * 60 * 1000;
+const OFFLINE_THRESHOLD_MS = 10 * 60 * 1000;
+
+type PresenceStatus = 'online' | 'away' | 'offline';
 
 type AdminUserDTO = {
   _id: string;
   name: string;
   email: string;
+  phone?: string;
+  address?: {
+    street?: string;
+    city?: string;
+    country?: string;
+  };
+  iotNodeCount: number;
   role: 'admin' | 'user';
   status: 'active' | 'suspended';
-  isOnline: boolean;
-  lastSeen: string | null;
+  presence: {
+    status: PresenceStatus;
+    lastSeen: string | null;
+  };
   image?: string;
   createdAt?: Date;
   updatedAt?: Date;
 };
 
+function computeStatus(user: User, now: number): PresenceStatus {
+  const lastSeenValue = user.presence?.lastSeen;
+  if (!lastSeenValue) {
+    return 'offline';
+  }
+
+  const diff = now - new Date(lastSeenValue).getTime();
+  if (diff > OFFLINE_THRESHOLD_MS) {
+    return 'offline';
+  }
+  if (diff > AWAY_THRESHOLD_MS) {
+    return 'away';
+  }
+
+  const storedStatus = user.presence?.status;
+  return storedStatus === 'away' ? 'away' : 'online';
+}
+
 function toAdminUserDTO(user: User, now: number): AdminUserDTO {
-  const lastSeenDate = user.lastSeen ? new Date(user.lastSeen) : null;
-  const isOnline =
-    user.isOnline === true &&
-    !!lastSeenDate &&
-    now - lastSeenDate.getTime() < ONLINE_THRESHOLD_MS;
+  const lastSeenDate = user.presence?.lastSeen ? new Date(user.presence.lastSeen) : null;
+  const status = computeStatus(user, now);
 
   return {
     _id: user._id.toString(),
     name: user.name,
     email: user.email,
+    phone: typeof user.phone === 'string' ? user.phone : '',
+    address: {
+      street: user.address?.street || '',
+      city: user.address?.city || '',
+      country: user.address?.country || '',
+    },
+    iotNodeCount: typeof user.iotNodeCount === 'number' ? user.iotNodeCount : 0,
     role: user.role === 'admin' ? 'admin' : 'user',
     status: user.status === 'suspended' ? 'suspended' : 'active',
-    isOnline,
-    lastSeen: lastSeenDate ? lastSeenDate.toISOString() : null,
+    presence: {
+      status,
+      lastSeen: lastSeenDate ? lastSeenDate.toISOString() : null,
+    },
     image: user.image,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,

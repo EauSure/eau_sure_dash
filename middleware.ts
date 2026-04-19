@@ -3,8 +3,10 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const locales = ['en', 'fr', 'ar'] as const;
 const defaultLocale = 'fr';
-const apiAuthExclusions = ['/api/tickets'] as const;
+const adminDefaultLocale = 'en';
+const apiAuthExclusions = ['/api/tickets', '/api/admin/nodes', '/api/admin/firmware', '/api/firmware'] as const;
 const authPages = [
+  '/admin/signin',
   '/signin',
   '/signup',
   '/forgot-password',
@@ -27,6 +29,21 @@ function isAuthPage(pathname: string): boolean {
   return authPages.some((page) => pathname.includes(page));
 }
 
+function stripLocalePrefix(pathname: string): string {
+  const locale = getLocaleFromPath(pathname);
+  if (!locale) {
+    return pathname;
+  }
+
+  const stripped = pathname.slice(locale.length + 1);
+  return stripped.startsWith('/') ? stripped : `/${stripped}`;
+}
+
+function isAdminAreaPath(pathname: string): boolean {
+  const localizedPath = stripLocalePrefix(pathname);
+  return localizedPath === '/admin' || localizedPath.startsWith('/admin/');
+}
+
 export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -39,18 +56,35 @@ export default async function middleware(request: NextRequest) {
   }
 
   let locale = getLocaleFromPath(pathname);
-  const localeCookie = request.cookies.get('NEXT_LOCALE')?.value;
+  const userLocaleCookie = request.cookies.get('NEXT_LOCALE')?.value;
+  const adminLocaleCookie = request.cookies.get('NEXT_LOCALE_ADMIN')?.value;
+  const adminPath = isAdminAreaPath(pathname);
 
   if (!locale) {
-    const preferredLocale = localeCookie || defaultLocale;
+    const preferredLocale = adminPath
+      ? adminLocaleCookie || adminDefaultLocale
+      : userLocaleCookie || defaultLocale;
+
     if (isValidLocale(preferredLocale)) {
       const prefixedPath = pathname === '/' ? `/${preferredLocale}` : `/${preferredLocale}${pathname}`;
       return NextResponse.redirect(new URL(prefixedPath, request.url));
     }
-    locale = defaultLocale;
+    locale = adminPath ? adminDefaultLocale : defaultLocale;
   }
 
   if (isAuthPage(pathname)) {
+    const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
+    const operatorSignInPaths = [
+      `/${locale}/auth/signin`,
+      `/${locale}/signin`,
+      '/auth/signin',
+      '/signin',
+    ];
+
+    if (token?.role === 'admin' && operatorSignInPaths.includes(pathname)) {
+      return NextResponse.redirect(new URL(`/${locale}/admin`, request.url));
+    }
+
     return NextResponse.next();
   }
 

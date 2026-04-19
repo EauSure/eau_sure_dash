@@ -1,28 +1,9 @@
 import { getToken } from 'next-auth/jwt';
 import { NextRequest, NextResponse } from 'next/server';
+import { serializeChat } from '@/lib/chat';
 import { getClient } from '@/lib/mongodb';
 import { getUserByEmail } from '@/lib/user';
 import type { Chat } from '@/lib/models/Chat';
-
-function serializeChat(chat: Chat | null) {
-  if (!chat) {
-    return {
-      chatId: null,
-      messages: [],
-      createdAt: null,
-    };
-  }
-
-  return {
-    chatId: chat._id.toString(),
-    messages: chat.messages.map((message) => ({
-      role: message.role,
-      text: message.text,
-      timestamp: new Date(message.timestamp).toISOString(),
-    })),
-    createdAt: new Date(chat.createdAt).toISOString(),
-  };
-}
 
 export async function GET(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });

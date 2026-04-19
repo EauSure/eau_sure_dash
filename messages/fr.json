@@ -197,6 +197,14 @@
     "refresh": "Actualiser",
     "cancel": "Annuler",
     "working": "Traitement...",
+    "phone": "Téléphone",
+    "address": "Adresse",
+    "iotNodes": "Nœuds IoT",
+    "nodes": "nœuds",
+    "node": "nœud",
+    "notProvided": "Non renseigné",
+    "expandUser": "Afficher les détails",
+    "collapseUser": "Masquer les détails",
     "showing": "Affichage de {count} sur {total} utilisateurs",
     "toast": {
       "deleted": "Utilisateur supprimé avec succès.",
@@ -205,13 +213,13 @@
     }
   },
   "presence": {
-    "online": "En ligne",
+    "online": "Actif maintenant",
+    "away": "Absent",
     "offline": "Hors ligne",
-    "never": "Jamais vu",
+    "never": "Jamais actif",
     "justNow": "À l'instant",
-    "minutesAgo": "il y a {count} min",
-    "hoursAgo": "il y a {count} h",
-    "lastSeen": "Dernière activité"
+    "minutesAgo": "{count}m",
+    "hoursAgo": "{count}h"
   },
   "alerts": {
     "title": "Alertes",
@@ -260,6 +268,81 @@
   "gateway": {
     "title": "Passerelle",
     "description": "Gérez votre connectivité de passerelle LoRaWAN"
+  },
+  "superviseSystem": {
+    "title": "Superviser le système",
+    "totalNodes": "Nœuds totaux",
+    "activeNow": "Actifs maintenant",
+    "inactive": "Inactifs",
+    "uniqueOwners": "Propriétaires uniques",
+    "searchPlaceholder": "Rechercher par ID nœud, propriétaire ou localisation...",
+    "filters": {
+      "status": "Statut",
+      "firmware": "Firmware",
+      "all": "Tous",
+      "allFirmware": "Tous les firmwares"
+    },
+    "columns": {
+      "nodeId": "ID nœud",
+      "owner": "Propriétaire",
+      "location": "Localisation",
+      "firmware": "Firmware",
+      "status": "Statut",
+      "lastSeen": "Dernière activité"
+    },
+    "statuses": {
+      "active": "Actif",
+      "inactive": "Inactif"
+    },
+    "time": {
+      "justNow": "À l'instant",
+      "minutesAgo": "il y a {count} min",
+      "hoursAgo": "il y a {count} h"
+    },
+    "deviceIdLabel": "ID appareil",
+    "locationPlaceholder": "Puits A - Champ Nord",
+    "never": "Jamais",
+    "noNodes": "Aucun nœud trouvé",
+    "editNode": "Modifier le nœud",
+    "viewData": "Voir les données capteur",
+    "errors": {
+      "load": "Impossible de charger les nœuds.",
+      "save": "Impossible d'enregistrer les modifications du nœud."
+    },
+    "toasts": {
+      "saved": "Nœud mis à jour avec succès."
+    }
+  },
+  "deployUpdates": {
+    "title": "Déployer les mises à jour firmware",
+    "uploadSection": "Téléverser un nouveau firmware",
+    "dropzone": "Déposez un fichier .bin ici ou cliquez pour parcourir",
+    "onlyBin": "Seuls les fichiers .bin sont acceptés",
+    "version": "Version",
+    "changelog": "Journal des modifications",
+    "changelogPlaceholder": "Décrivez les changements de cette version...",
+    "uploadBtn": "Téléverser le firmware",
+    "releases": "Versions publiées",
+    "noReleases": "Aucune version firmware pour le moment",
+    "downloads": "téléchargements",
+    "uploadedBy": "Téléversé par",
+    "delete": "Supprimer la version",
+    "deleteConfirm": "Cette action supprimera définitivement cette version firmware et son fichier.",
+    "download": "Télécharger",
+    "showMore": "Afficher plus",
+    "showLess": "Afficher moins",
+    "errors": {
+      "load": "Impossible de charger les versions firmware.",
+      "upload": "Impossible de téléverser le firmware.",
+      "delete": "Impossible de supprimer la version firmware.",
+      "invalidFile": "Seuls les fichiers .bin sont autorisés.",
+      "fileRequired": "Veuillez sélectionner un fichier firmware.",
+      "versionRequired": "La version est obligatoire."
+    },
+    "toasts": {
+      "uploaded": "Firmware téléversé avec succès.",
+      "deleted": "Version firmware supprimée avec succès."
+    }
   },
   "support": {
     "title": "Support et rapports de bugs",
@@ -364,6 +447,13 @@
       "you": "Vous",
       "empty": "Commencez la conversation en envoyant un message."
     },
+    "adminChat": {
+      "title": "Conversations opérateurs",
+      "description": "Consultez et répondez aux messages de chat en direct des opérateurs.",
+      "operators": "Opérateurs",
+      "noConversations": "Aucune conversation opérateur pour le moment.",
+      "selectConversation": "Sélectionnez une conversation opérateur pour répondre."
+    },
     "detail": {
       "submittedBy": "Soumis par {name} · {email}",
       "createdAt": "Créé le {date}",
@@ -382,12 +472,47 @@
     "title": "Surveillance IoT de l'eau",
     "subtitle": "Plateforme d'analyse autonome de la qualité de l'eau",
     "signIn": "Se connecter",
+    "adminPortal": "Portail Admin →",
     "createAccount": "Créer un compte",
     "features": "Caractéristiques de la plateforme",
     "auth": {
       "signin": {
         "title": "Se connecter",
-        "description": "Connectez-vous à votre compte"
+        "description": "Connectez-vous à votre compte opérateur",
+        "operatorBadge": "Connexion opérateur",
+        "emailLabel": "E-mail",
+        "emailPlaceholder": "operateur@exemple.com",
+        "passwordLabel": "Mot de passe",
+        "forgotPassword": "Mot de passe oublié ?",
+        "submit": "Se connecter",
+        "signingIn": "Connexion en cours...",
+        "noAccount": "Vous n'avez pas de compte ?",
+        "signUp": "S'inscrire",
+        "adminPrompt": "Vous êtes administrateur ?",
+        "adminPortalLink": "Connectez-vous via le Portail Admin",
+        "errors": {
+          "invalidCredentials": "E-mail ou mot de passe invalide.",
+          "unexpected": "Une erreur est survenue. Veuillez réessayer.",
+          "adminMustUseAdminPortal": "Les comptes administrateur doivent se connecter via le Portail Admin."
+        }
+      },
+      "adminSignin": {
+        "badge": "Accès administrateur",
+        "title": "Portail Admin",
+        "description": "Connectez-vous avec vos identifiants administrateur",
+        "emailLabel": "E-mail",
+        "emailPlaceholder": "admin@exemple.com",
+        "passwordLabel": "Mot de passe",
+        "forgotPassword": "Mot de passe oublié ?",
+        "submit": "Se connecter",
+        "signingIn": "Connexion en cours...",
+        "operatorPrompt": "Cette page est réservée aux administrateurs.",
+        "operatorLink": "Aller à la connexion opérateur",
+        "errors": {
+          "invalidCredentials": "E-mail ou mot de passe invalide.",
+          "unexpected": "Une erreur est survenue. Veuillez réessayer.",
+          "operatorOnlyPortal": "Ce portail est réservé aux administrateurs. Les opérateurs doivent se connecter à /signin."
+        }
       },
       "signup": {
         "title": "Créer un compte",

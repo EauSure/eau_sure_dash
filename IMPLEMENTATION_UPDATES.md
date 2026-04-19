@@ -80,3 +80,123 @@
 - Enforced admin anonymity in user chat rendering by always showing localized generic agent identity and shield avatar for admin messages.
 - Updated `/api/admin/online` to return only `{ available }` without any admin-identifying fields.
 - Added new support i18n keys (`pageTitle`, `pageSubtitle`, `chat.agentName`) in EN/FR/AR locale message files.
+
+## Step 12 - User Model Extension for Admin Workspace
+- Extended `lib/user.ts` `User` interface with optional `phone`, `address`, and `iotNodeCount` fields.
+- Updated user creation defaults to initialize `phone` as empty, `address` object as empty fields, and `iotNodeCount` to `0`.
+- Extended `GET /api/admin/users` response mapping to include `phone`, `address`, and `iotNodeCount` for manage-users expansion details.
+
+## Step 13 - New Admin IoT and Firmware APIs
+- Added admin-protected IoT node endpoints:
+  - `GET /api/admin/nodes`
+  - `PATCH /api/admin/nodes/[id]`
+- Implemented dynamic node active status (`lastSeen` within 5 minutes) and normalized response serialization (`_id`, `ownerId`, ISO dates).
+- Added firmware release endpoints:
+  - `GET /api/admin/firmware`
+  - `POST /api/admin/firmware` (multipart `.bin` upload, validation, file persistence, release counter generation)
+  - `DELETE /api/admin/firmware/[releaseId]`
+  - `GET /api/firmware/[releaseId]/download` (authenticated download with `downloadCount` increment)
+
+## Step 14 - Admin Page Buildout and Localization
+- Upgraded `app/[locale]/admin/manage-users/page.tsx` with per-user expandable inline details (phone, address, IoT nodes) using animated reveal panels and chevron toggles.
+- Replaced `app/[locale]/admin/supervise-system/page.tsx` placeholder with full node supervision UI:
+  - stats cards, search/status/firmware filters, active presence dots, relative last-seen rendering, action dropdown, editable detail sheet.
+- Replaced `app/[locale]/admin/deploy-updates/page.tsx` placeholder with firmware deployment workspace:
+  - drag-and-drop `.bin` upload, upload progress, release list, changelog expand/collapse, download, delete confirmation.
+- Added complete `superviseSystem` and `deployUpdates` translation namespaces (EN/FR/AR), plus new `manageUsers` keys for expanded details.
+- Updated middleware API exclusion list with new firmware/node API prefixes.
+
+## Step 15 - Unified Infrastructure UI Design Pass
+- Applied a unified visual system across user dashboard and admin pages listed in scope, without changing API calls, auth flow, hooks orchestration, or data-fetch behavior.
+- Introduced consistent page wrappers, typographic hierarchy, asymmetric left-accent panels/cards, operational-style stat cards with inline progress indicators, and updated table/filter visual language.
+- Added selective framer-motion section/card entry and hover interactions on interactive surfaces while preserving existing page functionality.
+- Standardized interactive feedback with `active:scale-95` button press feel and consistent status badge treatments.
+- Preserved existing support page and route logic constraints, and validated all touched files with zero diagnostics errors.
+
+## Step 16 - Alerts JSX Parse Fix
+- Fixed a JSX structure mismatch in `app/[locale]/dashboard/alerts/page.tsx` by removing one extra trailing closing `</div>`.
+- Resolved build parse error (`Unterminated regexp literal`) reported at line 187.
+- Re-validated file diagnostics: no errors remaining.
+
+## Step 17 - Remove Asymmetric Accent Borders
+- Removed all colored left-side accent borders throughout the entire application per user request.
+- Affected components: 14 distinct accent div instances across 8 files:
+  - Dashboard pages: `page.tsx`, `alerts`, `wells`, `gateway`, `devices`, `updates`, `profile`
+  - Admin pages: `admin/page.tsx`
+- Removed styling for accents previously keyed to context (blue-500, red-400, indigo-500, emerald-400, amber-400, etc).
+- Cleaned up related data properties (removed `accent` fields from stat card objects in alerts and updates pages).
+- Re-validated all modified files: zero errors, all pages validate correctly.
+
+## Step 18 - Activity-Based Presence (Online / Away / Offline)
+- Reworked user presence persistence from legacy `isOnline` + `lastSeen` to nested `presence` fields in `lib/user.ts`:
+  - `presence.status` (`online` | `away` | `offline`)
+  - `presence.lastActive`
+  - `presence.lastSeen`
+- Updated user creation defaults to initialize presence as offline with null timestamps.
+- Rebuilt `hooks/useHeartbeat.ts` to track tab activity (`mousemove`, `mousedown`, `keydown`, `touchstart`, `scroll`, visible-tab return) and:
+  - mark online immediately on interaction,
+  - auto-transition to away after 3 minutes of inactivity,
+  - continue 30s heartbeats with current status,
+  - send offline beacon on unload.
+- Updated `POST /api/user/heartbeat` to accept `status` and persist online/away server-side.
+- Updated `POST /api/user/heartbeat/offline` to persist explicit offline state.
+- Updated `GET /api/admin/users` to always recompute effective status from `presence.lastSeen` with constants:
+  - away threshold: 3 minutes
+  - offline threshold: 10 minutes
+- Updated `GET /api/admin/online` (chat availability) to query by `presence.lastSeen` freshness and `presence.status` in `online|away`, while still returning only `{ available }`.
+- Updated `app/[locale]/admin/manage-users/page.tsx` presence indicator from two-state to three-state behavior:
+  - online: emerald dot + ping
+  - away: amber dot, no ping
+  - offline: gray dot, no ping, relative last-seen label
+- Refreshed `presence` translation keys in `messages/en.json`, `messages/fr.json`, and `messages/ar.json` to include away state and compact last-seen strings.
+- Kept auth and middleware behavior unchanged; presence now reflects real tab activity rather than login/logout state.
+
+## Step 19 - Split Operator/Admin Sign-In with Role Enforcement
+- Added credential role expectation support in `lib/auth-options.ts` via optional `expectedRole` (`operator`/`user`/`admin`) and backward-compatible behavior when omitted.
+- Added role mismatch handling path that can return a custom opaque code (`ROLE_MISMATCH`) for UI guidance when requested.
+- Refactored operator sign-in in `app/[locale]/auth/signin/page.tsx`:
+  - removed role selector,
+  - enforced `expectedRole: 'operator'`,
+  - added `Operator Login` badge and Admin Portal hint link,
+  - added localized role-aware error handling.
+- Added a dedicated localized admin sign-in route at `app/[locale]/(public)/admin/signin/page.tsx` (URL: `/{locale}/admin/signin`) with indigo visual accent and `Administrator Access` labeling.
+- Updated landing page `app/[locale]/page.tsx`:
+  - locale-aware auth links,
+  - added muted `Admin Portal →` CTA below main sign-in button.
+- Updated `middleware.ts`:
+  - added `/admin/signin` to public auth route matching,
+  - added redirect rule sending authenticated admins away from operator sign-in to `/{locale}/admin`.
+- Added new i18n keys in all locales (`messages/en.json`, `messages/fr.json`, `messages/ar.json`) for operator/admin portal labels, prompts, and errors.
+
+## Step 20 - Live Chat Reliability + Admin Reply Workspace
+- Fixed `POST /api/chat/send` MongoDB update conflict by removing dual writes on `messages` (`$setOnInsert` + `$push` on the same path) and keeping `updatedAt` metadata for ordering.
+- Hardened chat send request parsing to return `400` on malformed JSON payloads instead of surfacing uncaught parse errors.
+- Added admin chat APIs:
+  - `GET /api/chat/admin` for operator conversation listing with optional `userId` thread payload.
+  - `POST /api/chat/reply` for authenticated admin replies routed into the same operator chat stream.
+- Extended chat model typing in `lib/models/Chat.ts` with `updatedAt` and `chatReplySchema`.
+- Added an admin chat section to `app/[locale]/admin/diagnose-problems/page.tsx`:
+  - operator conversation list grouped by `userId`,
+  - selected conversation thread view,
+  - reply input with 5s polling refresh.
+- Kept operator-side identity masking intact (`Support Agent`) and ensured admin replies surface in operator polling via existing `GET /api/chat/mine`.
+- Added localized admin chat UI strings in `messages/en.json`, `messages/fr.json`, and `messages/ar.json` under `support.adminChat`.
+
+## Step 21 - Live Chat Security, Moderation, and Queue UX
+- Expanded the chat model with explicit session status fields: `waiting`, `active`, `suspended`, and `ended`, plus `reason`, `startedAt`, `endedAt`, `suspendedBy`, `operatorTyping`, and `adminTyping`.
+- Added new chat routes for request, typing, waiting queue, accept, moderation, active-session lookup, and server-side bad-word filtering on outgoing messages.
+- Rebuilt the operator live-chat experience with a reason/subject request form, polling, typing indicators, countdown timer, and blocked input handling for suspended or ended sessions.
+- Replaced the admin diagnostics chat panel with a live support workspace showing the waiting queue, user profile details, active-session actions, typing indicators, and chat moderation controls.
+- Installed `bad-words` for both client-side and server-side chat profanity filtering.
+
+## Step 22 - Auth Hardening and Password UX
+- Removed admin self-registration from the signup flow and locked self-service account creation to standard users.
+- Removed signup-time admin secret handling from the signup API and client form.
+- Added a shared press-and-hold password input and wired it into sign-in, signup, reset-password, and admin sign-in screens.
+
+## Step 23 - Admin Diagnose Chat Mount + Role-Aware Locale Cookies
+- Fixed `app/[locale]/admin/diagnose-problems/page.tsx` to explicitly render both admin work areas using tabs: `Support Tickets` and `Live Chat`.
+- Mounted the existing live chat workspace into the authenticated render path so it no longer appears only during loading.
+- Added role-aware locale cookie handling in `middleware.ts` so admin routes use `NEXT_LOCALE_ADMIN` and default to English when no admin preference exists.
+- Updated `/api/locale` to accept `scope: 'admin' | 'user'` and write the appropriate locale cookie.
+- Updated admin sign-in to persist admin locale preferences via `/api/locale` with admin scope after successful login.

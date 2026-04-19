@@ -8,6 +8,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
+import Filter from 'bad-words';
 import { toast } from 'sonner';
 import {
   ArrowLeft as ArrowLeftIcon,
@@ -15,7 +16,6 @@ import {
   Loader2,
   MessageCircle as MessageCircleIcon,
   PlusCircle as PlusCircleIcon,
-  Send as SendIcon,
   Shield as ShieldIcon,
   Ticket as TicketIcon,
   User as UserIcon,
@@ -36,6 +36,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
+import { isRecentTimestamp, type SerializedChat } from '@/lib/chat';
 import {
   ticketCategories,
   ticketCreateSchema,
@@ -65,12 +66,9 @@ type ChatMessage = {
   timestamp: string;
 };
 
-type SupportView = 'landing' | 'new-ticket' | 'my-tickets' | 'live-chat';
+type SupportChat = SerializedChat;
 
-type AdminAvailability = {
-  loading: boolean;
-  available: boolean;
-};
+type SupportView = 'landing' | 'new-ticket' | 'my-tickets' | 'live-chat';
 
 type TicketFormValues = z.infer<typeof ticketCreateSchema>;
 
@@ -93,15 +91,16 @@ export default function SupportPage() {
   const [submitting, setSubmitting] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<UserTicket | null>(null);
+  const [chatReason, setChatReason] = useState('');
   const [chatInput, setChatInput] = useState('');
   const [sendingChat, setSendingChat] = useState(false);
   const [loadingChat, setLoadingChat] = useState(false);
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [requestingChat, setRequestingChat] = useState(false);
+  const [chatSession, setChatSession] = useState<SupportChat | null>(null);
+  const [chatNow, setChatNow] = useState(Date.now());
   const bottomRef = useRef<HTMLDivElement | null>(null);
-  const [adminAvailability, setAdminAvailability] = useState<AdminAvailability>({
-    loading: false,
-    available: false,
-  });
+  const typingPingRef = useRef<number | null>(null);
+  const chatFilter = useMemo(() => new Filter(), []);
 
   const form = useForm<TicketFormValues>({
     resolver: zodResolver(ticketCreateSchema),
@@ -158,37 +157,6 @@ export default function SupportPage() {
     }
   }, [locale, router, t]);
 
-  const fetchAdminAvailability = useCallback(async () => {
-    setAdminAvailability((previous) => ({ ...previous, loading: true }));
-
-    try {
-      const response = await fetch('/api/admin/online', {
-        credentials: 'include',
-        cache: 'no-store',
-      });
-
-      if (response.status === 401) {
-        router.push(`/${locale}/auth/signin`);
-        return;
-      }
-
-      if (!response.ok) {
-        const payload = await response.json().catch(() => ({}));
-        throw new Error(typeof payload?.error === 'string' ? payload.error : t('error'));
-      }
-
-      const payload = (await response.json()) as { available: boolean };
-      setAdminAvailability({
-        loading: false,
-        available: payload.available,
-      });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : t('error');
-      toast.error(message);
-      setAdminAvailability({ loading: false, available: false });
-    }
-  }, [locale, router, t]);
-
   const fetchMyChat = useCallback(async (silent = false) => {
     if (!silent) {
       setLoadingChat(true);
@@ -210,8 +178,8 @@ export default function SupportPage() {
         throw new Error(typeof payload?.error === 'string' ? payload.error : t('error'));
       }
 
-      const payload = (await response.json()) as { messages?: ChatMessage[] };
-      setChatMessages(payload.messages ?? []);
+      const payload = (await response.json()) as SupportChat;
+      setChatSession(payload);
     } catch (error) {
       const message = error instanceof Error ? error.message : t('error');
       toast.error(message);
@@ -221,6 +189,48 @@ export default function SupportPage() {
       }
     }
   }, [locale, router, t]);
+
+  const requestLiveChat = async () => {
+    const reason = chatReason.trim();
+
+    if (reason.length < 3) {
+      toast.error('Please provide a reason for the chat.');
+      return;
+    }
+
+    setRequestingChat(true);
+
+    try {
+      const response = await fetch('/api/chat/request', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ reason }),
+      });
+
+      if (response.status === 401) {
+        router.push(`/${locale}/auth/signin`);
+        return;
+      }
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(typeof payload?.error === 'string' ? payload.error : t('error'));
+      }
+
+      const payload = (await response.json()) as SupportChat;
+      setChatSession(payload);
+      setChatReason('');
+      toast.success('Support request submitted.');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : t('error');
+      toast.error(message);
+    } finally {
+      setRequestingChat(false);
+    }
+  };
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -238,17 +248,54 @@ export default function SupportPage() {
       return;
     }
 
-    void fetchAdminAvailability();
     void fetchMyChat();
 
     const intervalId = window.setInterval(() => {
       void fetchMyChat(true);
-    }, 5000);
+    }, 3000);
+
+    const clockId = window.setInterval(() => {
+      setChatNow(Date.now());
+    }, 1000);
 
     return () => {
       window.clearInterval(intervalId);
+      window.clearInterval(clockId);
     };
-  }, [currentView, fetchAdminAvailability, fetchMyChat, status]);
+  }, [currentView, fetchMyChat, status]);
+
+  useEffect(() => {
+    if (typingPingRef.current) {
+      window.clearTimeout(typingPingRef.current);
+      typingPingRef.current = null;
+    }
+
+    if (status !== 'authenticated' || currentView !== 'live-chat') {
+      return;
+    }
+
+    if (!chatSession || !chatInput.trim() || chatSession.status !== 'active') {
+      return;
+    }
+
+    typingPingRef.current = window.setTimeout(() => {
+      void fetch('/api/chat/typing', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({}),
+      });
+    }, 350);
+
+    return () => {
+      if (typingPingRef.current) {
+        window.clearTimeout(typingPingRef.current);
+        typingPingRef.current = null;
+      }
+    };
+  }, [chatInput, chatSession, currentView, status]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -290,19 +337,20 @@ export default function SupportPage() {
 
   const sendChatMessage = async () => {
     const nextMessage = chatInput.trim();
-    if (!nextMessage) {
+    if (!nextMessage || !chatSession || chatSession.status !== 'active') {
       return;
     }
 
     try {
       setSendingChat(true);
+      const sanitizedMessage = chatFilter.clean(nextMessage);
       const response = await fetch('/api/chat/send', {
         method: 'POST',
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ text: nextMessage }),
+        body: JSON.stringify({ text: sanitizedMessage }),
       });
 
       if (!response.ok) {
@@ -324,6 +372,8 @@ export default function SupportPage() {
     setSelectedTicket(ticket);
     setDetailOpen(true);
   };
+
+  const chatMessages: ChatMessage[] = useMemo(() => chatSession?.messages ?? [], [chatSession?.messages]);
 
   if (status === 'loading') {
     return (
@@ -347,6 +397,24 @@ export default function SupportPage() {
 
   const showAdminNote =
     typeof selectedTicket?.adminNote === 'string' && selectedTicket.adminNote.trim().length > 0;
+  const chatStatus = chatSession?.status ?? null;
+  const canSendChat = Boolean(chatSession && chatStatus === 'active');
+  const isChatLocked = Boolean(chatSession && ['suspended', 'ended'].includes(chatStatus ?? ''));
+
+  const chatElapsedLabel = (() => {
+    if (!chatSession?.startedAt) {
+      return '00:00';
+    }
+
+    const startTime = new Date(chatSession.startedAt).getTime();
+    const endTime = chatSession.endedAt ? new Date(chatSession.endedAt).getTime() : chatNow;
+    const elapsedSeconds = Math.max(0, Math.floor((endTime - startTime) / 1000));
+    const minutes = Math.floor(elapsedSeconds / 60)
+      .toString()
+      .padStart(2, '0');
+    const seconds = (elapsedSeconds % 60).toString().padStart(2, '0');
+    return `${minutes}:${seconds}`;
+  })();
 
   const renderBackButton = () => (
     <button
@@ -577,120 +645,199 @@ export default function SupportPage() {
             {currentView === 'live-chat' ? (
               <div className="w-full">
                 {renderBackButton()}
-
-                {!adminAvailability.loading && !adminAvailability.available ? (
-                  <div className="w-full rounded-2xl border bg-card p-6 shadow-sm sm:p-8">
-                    <div className="space-y-3 rounded-xl border border-dashed p-6 text-center sm:text-start">
-                      <p className="text-base font-semibold">{t('chat.unavailable')}</p>
-                      <p className="text-sm text-muted-foreground">{t('chat.unavailableHint')}</p>
-                      <Button onClick={() => setCurrentView('new-ticket')} className="w-full sm:w-auto">
-                        {t('landing.newTicket')}
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="rounded-2xl border bg-card shadow-sm w-full flex flex-col overflow-hidden h-130">
-                    <div className="flex items-center gap-3 border-b bg-muted/30 px-5 py-4">
-                      <div className="rounded-full bg-primary/10 p-2">
-                        <HeadphonesIcon className="h-4 w-4 text-primary" />
-                      </div>
-                      <div>
+                <div className="w-full overflow-hidden rounded-2xl border bg-card shadow-sm">
+                  <div className="border-b bg-muted/30 px-5 py-4">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div className="space-y-1">
                         <p className="text-sm font-semibold">{t('chat.title')}</p>
-                        <p className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <span
-                            className={cn(
-                              'inline-block h-1.5 w-1.5 rounded-full',
-                              adminAvailability.loading ? 'bg-amber-500' : 'bg-green-500'
-                            )}
-                          />
-                          {adminAvailability.loading ? t('refresh') : t('chat.available')}
-                        </p>
+                        <p className="text-xs text-muted-foreground">Support Agent will respond when your request is accepted.</p>
                       </div>
-                    </div>
-
-                    <div className="flex flex-1 flex-col gap-3 overflow-y-auto px-5 py-4">
-                      {loadingChat ? (
-                        <div className="space-y-3">
-                          <Skeleton className="h-12 w-2/3" />
-                          <Skeleton className="ml-auto h-12 w-2/3" />
-                        </div>
-                      ) : chatMessages.length === 0 ? (
-                        <p className="text-sm text-muted-foreground">{t('chat.empty')}</p>
-                      ) : (
-                        chatMessages.map((message, index) => {
-                          const isUser = message.role === 'user';
-                          const displayName = isUser ? t('chat.you') : t('chat.agentName');
-
-                          return (
-                            <div
-                              key={`chat-message-${index}-${message.timestamp}`}
-                              className={cn(
-                                'flex max-w-[80%] gap-2',
-                                isUser
-                                  ? isRtl
-                                    ? 'mr-auto flex-row'
-                                    : 'ml-auto flex-row-reverse'
-                                  : isRtl
-                                    ? 'ml-auto flex-row-reverse'
-                                    : 'mr-auto'
-                              )}
-                            >
-                              {isUser ? (
-                                <div className="rounded-full bg-primary/10 p-2">
-                                  <UserIcon className="h-4 w-4 text-primary" />
-                                </div>
-                              ) : (
-                                <div className="rounded-full bg-muted p-2">
-                                  <ShieldIcon className="h-4 w-4 text-muted-foreground" />
-                                </div>
-                              )}
-
-                              <div className="flex min-w-0 flex-col gap-1">
-                                <p className="text-xs font-medium text-muted-foreground">{displayName}</p>
-                                <div
-                                  className={cn(
-                                    'rounded-2xl px-4 py-2.5 text-sm leading-relaxed',
-                                    isUser
-                                      ? 'rounded-tr-sm bg-primary text-primary-foreground'
-                                      : 'rounded-tl-sm bg-muted text-foreground'
-                                  )}
-                                >
-                                  {message.text}
-                                </div>
-                                <span className="text-xs text-muted-foreground">
-                                  {formatDate(message.timestamp)}
-                                </span>
-                              </div>
-                            </div>
-                          );
-                        })
-                      )}
-                      <div ref={bottomRef} />
-                    </div>
-
-                    <div className="flex gap-2 border-t bg-background px-4 py-3">
-                      <Input
-                        className="flex-1 rounded-xl border bg-muted/50 px-4 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
-                        placeholder={t('chat.placeholder')}
-                        value={chatInput}
-                        onChange={(event) => setChatInput(event.target.value)}
-                        onKeyDown={(event) => {
-                          if (event.key === 'Enter' && !event.shiftKey) {
-                            event.preventDefault();
-                            void sendChatMessage();
-                          }
-                        }}
-                      />
-                      <Button
-                        size="icon"
-                        onClick={() => void sendChatMessage()}
-                        disabled={!chatInput.trim() || sendingChat}
-                      >
-                        {sendingChat ? <Loader2 className="h-4 w-4 animate-spin" /> : <SendIcon className="h-4 w-4" />}
-                      </Button>
+                      {chatSession ? (
+                        <Badge variant="outline" className="capitalize">
+                          {chatSession.status}
+                        </Badge>
+                      ) : null}
                     </div>
                   </div>
-                )}
+
+                  {!chatSession || chatSession.status === 'ended' ? (
+                    <div className="grid gap-5 p-5 sm:p-6 lg:grid-cols-[1.15fr_0.85fr]">
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <h2 className="text-lg font-semibold">Request a live chat</h2>
+                          <p className="text-sm text-muted-foreground">
+                            Enter a short subject or reason so Support Agent can route your request.
+                          </p>
+                        </div>
+                        <div className="space-y-3">
+                          <Textarea
+                            className="min-h-36"
+                            value={chatReason}
+                            onChange={(event) => setChatReason(event.target.value)}
+                            placeholder="Example: Sensor readings are inconsistent after reconnecting the gateway"
+                          />
+                          <Button onClick={() => void requestLiveChat()} disabled={requestingChat || !chatReason.trim()}>
+                            {requestingChat ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
+                            Submit Request
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="rounded-2xl border bg-background p-4">
+                        <p className="text-sm font-medium">Before you start</p>
+                        <div className="mt-3 space-y-3 text-sm text-muted-foreground">
+                          <p>• Live chat is queued in the order requests are received.</p>
+                          <p>• Bad words are filtered before messages are sent.</p>
+                          <p>• You can continue using tickets if the chat is paused or ended.</p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="grid min-h-128 gap-0 lg:grid-cols-[1.05fr_0.95fr]">
+                      <div className="border-b bg-background p-5 lg:border-b-0 lg:border-e">
+                        <div className="space-y-4">
+                          <div className="rounded-2xl border bg-muted/20 p-4">
+                            <div className="flex items-start justify-between gap-3">
+                              <div>
+                                <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Reason / Subject</p>
+                                <p className="mt-1 text-base font-semibold">{chatSession.reason}</p>
+                              </div>
+                              {chatSession.startedAt ? (
+                                <Badge variant="outline" className="font-mono">
+                                  {chatElapsedLabel}
+                                </Badge>
+                              ) : null}
+                            </div>
+                            <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                              <span
+                                className={cn(
+                                  'inline-block h-2 w-2 rounded-full',
+                                  chatSession.status === 'active' && 'bg-emerald-500',
+                                  chatSession.status === 'waiting' && 'bg-amber-500',
+                                  chatSession.status === 'suspended' && 'bg-orange-500',
+                                  chatSession.status === 'ended' && 'bg-rose-500'
+                                )}
+                              />
+                              {chatSession.status === 'waiting' ? 'Waiting for Support Agent' : null}
+                              {chatSession.status === 'active' ? 'Support Agent is connected' : null}
+                              {chatSession.status === 'suspended' ? `Chat suspended${chatSession.suspendedBy ? ` by ${chatSession.suspendedBy}` : ''}` : null}
+                              {chatSession.status === 'ended' ? 'Chat ended' : null}
+                            </div>
+                          </div>
+
+                          {chatSession.adminTyping && isRecentTimestamp(chatSession.adminTyping, 3000) ? (
+                            <div className="rounded-full border bg-muted/40 px-4 py-2 text-sm text-muted-foreground">
+                              Admin is typing...
+                            </div>
+                          ) : null}
+
+                          <div className="flex h-88 flex-col gap-3 overflow-y-auto rounded-2xl border bg-background p-4">
+                            {loadingChat ? (
+                              <div className="space-y-3">
+                                <Skeleton className="h-12 w-2/3" />
+                                <Skeleton className="ml-auto h-12 w-2/3" />
+                              </div>
+                            ) : chatMessages.length === 0 ? (
+                              <p className="text-sm text-muted-foreground">
+                                {chatSession.status === 'waiting'
+                                  ? 'Your request is in the queue. Messages will appear once Support Agent accepts it.'
+                                  : 'Start the conversation with Support Agent.'}
+                              </p>
+                            ) : (
+                              chatMessages.map((message, index) => {
+                                const isUser = message.role === 'user';
+                                return (
+                                  <div
+                                    key={`chat-message-${index}-${message.timestamp}`}
+                                    className={cn(
+                                      'flex max-w-[80%] gap-2',
+                                      isUser
+                                        ? isRtl
+                                          ? 'mr-auto flex-row'
+                                          : 'ml-auto flex-row-reverse'
+                                        : isRtl
+                                          ? 'ml-auto flex-row-reverse'
+                                          : 'mr-auto'
+                                    )}
+                                  >
+                                    {isUser ? (
+                                      <div className="rounded-full bg-primary/10 p-2">
+                                        <UserIcon className="h-4 w-4 text-primary" />
+                                      </div>
+                                    ) : (
+                                      <div className="rounded-full bg-muted p-2">
+                                        <ShieldIcon className="h-4 w-4 text-muted-foreground" />
+                                      </div>
+                                    )}
+
+                                    <div className="flex min-w-0 flex-col gap-1">
+                                      <p className="text-xs font-medium text-muted-foreground">{isUser ? t('chat.you') : t('chat.agentName')}</p>
+                                      <div
+                                        className={cn(
+                                          'rounded-2xl px-4 py-2.5 text-sm leading-relaxed',
+                                          isUser
+                                            ? 'rounded-tr-sm bg-primary text-primary-foreground'
+                                            : 'rounded-tl-sm bg-muted text-foreground'
+                                        )}
+                                      >
+                                        {message.text}
+                                      </div>
+                                      <span className="text-xs text-muted-foreground">{formatDate(message.timestamp)}</span>
+                                    </div>
+                                  </div>
+                                );
+                              })
+                            )}
+                            <div ref={bottomRef} />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col gap-4 p-5">
+                        <div className="rounded-2xl border bg-background p-4">
+                          <p className="text-sm font-medium">Live chat status</p>
+                          <p className="mt-1 text-sm text-muted-foreground">
+                            {chatSession.status === 'waiting'
+                              ? 'Support Agent has not accepted this chat yet.'
+                              : chatSession.status === 'suspended'
+                                ? 'Messaging is paused until Support Agent resumes the chat.'
+                                : chatSession.status === 'ended'
+                                  ? 'This conversation has ended.'
+                                  : 'You can send messages now.'}
+                          </p>
+                        </div>
+
+                        <div className="rounded-2xl border bg-background p-4">
+                          <p className="text-sm font-medium">Message</p>
+                          <div className="mt-3 flex gap-2">
+                            <Textarea
+                              className="min-h-28 flex-1"
+                              placeholder="Type your message..."
+                              value={chatInput}
+                              onChange={(event) => setChatInput(event.target.value)}
+                              disabled={!canSendChat || sendingChat}
+                              onKeyDown={(event) => {
+                                if (event.key === 'Enter' && !event.shiftKey) {
+                                  event.preventDefault();
+                                  void sendChatMessage();
+                                }
+                              }}
+                            />
+                          </div>
+                          <div className="mt-3 flex items-center justify-between gap-3">
+                            <p className="text-xs text-muted-foreground">
+                              {isChatLocked ? 'This chat is locked by Support Agent.' : canSendChat ? 'Typing is shared with Support Agent.' : 'Messages can only be sent after the chat is accepted.'}
+                            </p>
+                            <Button onClick={() => void sendChatMessage()} disabled={!canSendChat || !chatInput.trim() || sendingChat}>
+                              {sendingChat ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
+                              Send
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             ) : null}
           </motion.div>

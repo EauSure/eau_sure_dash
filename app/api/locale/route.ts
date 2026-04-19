@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { locale } = body;
+    const { locale, scope } = body;
 
     if (!locale || !['en', 'fr', 'ar'].includes(locale)) {
       return NextResponse.json(
@@ -12,8 +12,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const cookieScope = scope === 'admin' ? 'admin' : 'user';
+    const cookieName = cookieScope === 'admin' ? 'NEXT_LOCALE_ADMIN' : 'NEXT_LOCALE';
+
     const response = NextResponse.json({ success: true, locale });
-    response.cookies.set('NEXT_LOCALE', locale, {
+    response.cookies.set(cookieName, locale, {
       path: '/',
       maxAge: 60 * 60 * 24 * 365, // 1 year
       sameSite: 'lax',

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { useSession } from 'next-auth/react';
 import { useRouter, useParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
@@ -196,23 +197,28 @@ export default function ProfilePage() {
   const isDirty = form.formState.isDirty;
 
   return (
-    <div className="space-y-6 max-w-4xl">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
-          <p className="text-muted-foreground mt-2">
-            {t('description')}
-          </p>
-        </div>
+    <div className="min-h-[calc(100vh-64px)] bg-gray-50/70 px-5 py-8 dark:bg-background sm:px-8 sm:py-10">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-7">
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0 }}>
+          <div className="mb-6 flex flex-col gap-1">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-blue-500">EauSure · Profile</p>
+            <h1 className="text-2xl font-black tracking-tight text-gray-900 dark:text-foreground">{t('title')}</h1>
+            <p className="mt-0.5 text-xs text-gray-400 dark:text-muted-foreground">{t('description')}</p>
+          </div>
+        </motion.div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('personalInfo')}</CardTitle>
-            <CardDescription>
-              {t('personalInfoDescription')}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Form {...form}>
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.07 }}>
+          <div className="relative overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-border dark:bg-card">
+            <div className="py-5 ps-6 pe-5">
+              <div className="mb-5 flex items-center justify-between">
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-400">Identity</span>
+                  <span className="text-base font-bold text-gray-900 dark:text-foreground">{t('personalInfo')}</span>
+                </div>
+              </div>
+            </div>
+            <CardContent>
+              <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 {/* Avatar Section */}
                 <div className="space-y-4">
@@ -340,13 +346,14 @@ export default function ProfilePage() {
                 />
 
                 <div className="flex justify-center gap-3 pt-4">
-                  <Button type="submit" disabled={!isDirty || isSaving}>
-                    {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  <Button type="submit" className="active:scale-95 transition-transform duration-100" disabled={!isDirty || isSaving}>
+                    {isSaving && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
                     {tCommon('save')}
                   </Button>
                   <Button
                     type="button"
                     variant="outline"
+                    className="active:scale-95 transition-transform duration-100"
                     onClick={handleDiscard}
                     disabled={!isDirty || isSaving}
                   >
@@ -355,8 +362,10 @@ export default function ProfilePage() {
                 </div>
               </form>
             </Form>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </div>
+        </motion.div>
       </div>
+    </div>
   );
 }

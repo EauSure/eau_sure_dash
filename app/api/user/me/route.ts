@@ -61,8 +61,8 @@ export async function GET(request: NextRequest) {
       name: user.name,
       email: user.email,
       image: user.image,
-      isOnline: user.isOnline === true,
-      lastSeen: user.lastSeen ? new Date(user.lastSeen).toISOString() : null,
+      isOnline: user.presence?.status === 'online' || user.presence?.status === 'away',
+      lastSeen: user.presence?.lastSeen ? new Date(user.presence.lastSeen).toISOString() : null,
     };
 
     return NextResponse.json(completeProfile);
@@ -125,8 +125,8 @@ export async function PATCH(request: NextRequest) {
       name: user.name,
       email: user.email,
       image: user.image,
-      isOnline: user.isOnline === true,
-      lastSeen: user.lastSeen ? new Date(user.lastSeen).toISOString() : null,
+      isOnline: user.presence?.status === 'online' || user.presence?.status === 'away',
+      lastSeen: user.presence?.lastSeen ? new Date(user.presence.lastSeen).toISOString() : null,
     };
 
     return NextResponse.json(completeProfile);

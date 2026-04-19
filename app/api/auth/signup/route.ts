@@ -3,15 +3,8 @@ import { createUser } from '@/lib/user';
 
 export async function POST(request: Request) {
   try {
-    const {
-      name,
-      email,
-      password,
-      role: requestedRole,
-      adminSecret,
-    } = await request.json();
-
-    const role: 'user' | 'admin' = requestedRole === 'admin' ? 'admin' : 'user';
+    const { name, email, password } = await request.json();
+    const role = 'user' as const;
 
     // Validate input
     if (!name || !email || !password) {
@@ -38,23 +31,8 @@ export async function POST(request: Request) {
       );
     }
 
-    if (role === 'admin') {
-      const expectedAdminSecret = process.env.ADMIN_SIGNUP_SECRET;
-
-      if (!expectedAdminSecret) {
-        return NextResponse.json(
-          { error: 'Admin account creation is currently disabled' },
-          { status: 403 }
-        );
-      }
-
-      if (adminSecret !== expectedAdminSecret) {
-        return NextResponse.json(
-          { error: 'Invalid admin access key' },
-          { status: 403 }
-        );
-      }
-    }
+    // Admin accounts are never created through self-service signup.
+    // Seed them directly in MongoDB or create them with a protected internal script.
 
     // Create user
     const user = await createUser(name, email, password, role);

@@ -2,8 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { motion } from 'framer-motion';
 import { toast } from 'sonner';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -15,6 +15,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { AlertTriangle, Bell, ShieldAlert } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import type { EauSurePaginatedResponse, EauSureSensorData } from '@/types/eausure';
 
 type FeedSeverity = 'Critical' | 'Warning' | 'Info';
@@ -77,71 +78,66 @@ export default function AlertsPage() {
   }, [feed]);
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-1">
-        <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
-        <p className="text-muted-foreground">{t('description')}</p>
-        <div className="pt-1">
-          <Button variant="outline" size="sm" onClick={() => void fetchFeed()}>
+    <div className="min-h-[calc(100vh-64px)] bg-gray-50/70 px-5 py-8 dark:bg-background sm:px-8 sm:py-10">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-7">
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0 }}>
+          <div className="mb-6 flex flex-col gap-1">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-red-400">EauSure · Alerts</p>
+            <h1 className="text-2xl font-black tracking-tight text-gray-900 dark:text-foreground">{t('title')}</h1>
+            <p className="mt-0.5 text-xs text-gray-400 dark:text-muted-foreground">{t('description')}</p>
+          </div>
+          <Button variant="outline" size="sm" className="active:scale-95 transition-transform duration-100" onClick={() => void fetchFeed()}>
             Refresh alerts
           </Button>
-        </div>
-      </div>
+        </motion.div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              {t('criticalAlerts')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.critical}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              {t('warnings')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.warning}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              {t('totalActive')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.total}</div>
-          </CardContent>
-        </Card>
-      </div>
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.07 }}>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            {[
+              { label: t('criticalAlerts'), value: String(stats.critical), pct: stats.total ? Math.round((stats.critical / stats.total) * 100) : 0 },
+              { label: t('warnings'), value: String(stats.warning), pct: stats.total ? Math.round((stats.warning / stats.total) * 100) : 0 },
+              { label: t('totalActive'), value: String(stats.total), pct: 100 },
+              { label: 'Critical Ratio', value: `${stats.total ? Math.round((stats.critical / stats.total) * 100) : 0}%`, pct: stats.total ? Math.round((stats.critical / stats.total) * 100) : 0 },
+            ].map((card) => (
+              <div key={card.label} className="relative overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-border dark:bg-card">
+                <div className="flex flex-col gap-3 py-5 ps-6 pe-5">
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-400">{card.label}</span>
+                  <span className="text-3xl font-black leading-none text-gray-900 dark:text-foreground">{card.value}</span>
+                  <div className="mt-1 flex items-center gap-2">
+                    <div className="h-1 flex-1 overflow-hidden rounded-full bg-gray-100 dark:bg-muted">
+                      <div className="h-full rounded-full bg-red-400 transition-all duration-700" style={{ width: `${card.pct}%` }} />
+                    </div>
+                    <span className="whitespace-nowrap text-[10px] font-medium text-gray-400">{card.pct}%</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </motion.div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Bell className="h-5 w-5 text-muted-foreground" />
-            {t('feed')}
-          </CardTitle>
-          <CardDescription>{t('feedDescription')}</CardDescription>
-        </CardHeader>
-        <CardContent>
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.14 }}>
+          <div className="relative overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-border dark:bg-card">
+            <div className="py-5 ps-6 pe-5">
+              <div className="mb-5 flex items-center justify-between">
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-400">Monitoring</span>
+                  <span className="text-base font-bold text-gray-900 dark:text-foreground">{t('feed')}</span>
+                </div>
+                <Bell className="h-5 w-5 text-muted-foreground" />
+              </div>
           {loading ? (
             <p className="text-sm text-muted-foreground">Loading alerts...</p>
           ) : (
-            <Table>
+            <div className="-mx-6 overflow-x-auto px-0">
+              <Table className="min-w-190 text-sm">
               <TableHeader>
-                <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Device</TableHead>
-                  <TableHead>Message</TableHead>
-                  <TableHead>Time</TableHead>
-                  <TableHead className="text-right">Severity</TableHead>
+                <TableRow className="border-y border-gray-100 bg-gray-50/80 dark:border-border dark:bg-muted/30">
+                  <TableHead className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.08em] text-gray-400">ID</TableHead>
+                  <TableHead className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.08em] text-gray-400">Type</TableHead>
+                  <TableHead className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.08em] text-gray-400">Device</TableHead>
+                  <TableHead className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.08em] text-gray-400">Message</TableHead>
+                  <TableHead className="px-6 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.08em] text-gray-400">Time</TableHead>
+                  <TableHead className="px-6 py-3 text-right text-[11px] font-semibold uppercase tracking-[0.08em] text-gray-400">Severity</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -151,20 +147,25 @@ export default function AlertsPage() {
                   const message = `${eventType} | pH ${alert.ph.value.toFixed(2)} | TDS ${alert.tds.value}`;
 
                   return (
-                    <TableRow key={alert._id}>
-                      <TableCell className="font-medium">{alert.sequence}</TableCell>
-                      <TableCell>{eventType}</TableCell>
-                      <TableCell>{alert.deviceId}</TableCell>
-                      <TableCell>{message}</TableCell>
-                      <TableCell className="text-muted-foreground">
+                    <TableRow key={alert._id} className="cursor-pointer border-b border-gray-50 transition-colors duration-100 hover:bg-blue-50/30 dark:border-border/40 dark:hover:bg-primary/5">
+                      <TableCell className="px-6 py-4 font-medium text-gray-700 dark:text-foreground">{alert.sequence}</TableCell>
+                      <TableCell className="px-6 py-4 text-gray-700 dark:text-foreground">{eventType}</TableCell>
+                      <TableCell className="px-6 py-4 text-gray-700 dark:text-foreground">{alert.deviceId}</TableCell>
+                      <TableCell className="px-6 py-4 text-gray-700 dark:text-foreground">{message}</TableCell>
+                      <TableCell className="px-6 py-4 text-muted-foreground">
                         {new Date(alert.timestamp).toLocaleString()}
                       </TableCell>
-                      <TableCell className="text-right">
-                        <Badge variant={severity === 'Critical' ? 'destructive' : 'secondary'}>
+                      <TableCell className="px-6 py-4 text-right">
+                        <Badge className={cn(
+                          'inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold',
+                          severity === 'Critical'
+                            ? 'border border-red-100 bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400'
+                            : 'border border-amber-100 bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400'
+                        )}>
                           {severity === 'Critical' ? (
-                            <ShieldAlert className="mr-1 h-3 w-3" />
+                            <ShieldAlert className="me-1 h-3 w-3" />
                           ) : (
-                            <AlertTriangle className="mr-1 h-3 w-3" />
+                            <AlertTriangle className="me-1 h-3 w-3" />
                           )}
                           {severity}
                         </Badge>
@@ -174,9 +175,12 @@ export default function AlertsPage() {
                 })}
               </TableBody>
             </Table>
+            </div>
           )}
-        </CardContent>
-      </Card>
+            </div>
+          </div>
+        </motion.div>
+      </div>
     </div>
   );
 }

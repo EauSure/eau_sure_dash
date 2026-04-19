@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { PasswordInput } from '@/components/ui/password-input';
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -18,8 +18,6 @@ export default function SignUpPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [role, setRole] = useState<'user' | 'admin'>('user');
-  const [adminSecret, setAdminSecret] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -53,8 +51,6 @@ export default function SignUpPage() {
           name,
           email,
           password,
-          role,
-          ...(role === 'admin' ? { adminSecret } : {}),
         }),
       });
 
@@ -71,7 +67,7 @@ export default function SignUpPage() {
         redirect: false,
         email,
         password,
-        role,
+        expectedRole: 'operator',
       });
 
       if (result?.error) {
@@ -79,7 +75,7 @@ export default function SignUpPage() {
         setIsLoading(false);
       } else if (result?.ok) {
         // Successfully signed in, redirect to dashboard
-        router.push(role === 'admin' ? '/admin' : '/dashboard');
+        router.push(`/${locale}/dashboard`);
         router.refresh();
       }
     } catch {
@@ -108,19 +104,6 @@ export default function SignUpPage() {
               </div>
             )}
             <div className="space-y-2">
-              <Label>Role</Label>
-              <Tabs
-                value={role}
-                onValueChange={(value) => setRole(value === 'admin' ? 'admin' : 'user')}
-                className="w-full"
-              >
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="user">User</TabsTrigger>
-                  <TabsTrigger value="admin">Admin</TabsTrigger>
-                </TabsList>
-              </Tabs>
-            </div>
-            <div className="space-y-2">
               <Label htmlFor="name">Full Name</Label>
               <Input
                 id="name"
@@ -145,9 +128,8 @@ export default function SignUpPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input
+              <PasswordInput
                 id="password"
-                type="password"
                 placeholder="••••••••"
                 autoComplete="new-password"
                 required
@@ -157,9 +139,8 @@ export default function SignUpPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <Input
+              <PasswordInput
                 id="confirmPassword"
-                type="password"
                 placeholder="••••••••"
                 autoComplete="new-password"
                 required
@@ -167,20 +148,6 @@ export default function SignUpPage() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
               />
             </div>
-            {role === 'admin' && (
-              <div className="space-y-2">
-                <Label htmlFor="adminSecret">Admin Access Key</Label>
-                <Input
-                  id="adminSecret"
-                  type="password"
-                  placeholder="Enter admin access key"
-                  autoComplete="off"
-                  required
-                  value={adminSecret}
-                  onChange={(e) => setAdminSecret(e.target.value)}
-                />
-              </div>
-            )}
           </CardContent>
           <CardFooter className="flex flex-col space-y-4 pt-4">
             <Button type="submit" className="w-full" disabled={isLoading}>

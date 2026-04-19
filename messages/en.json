@@ -199,6 +199,14 @@
     "refresh": "Refresh",
     "cancel": "Cancel",
     "working": "Working...",
+    "phone": "Phone",
+    "address": "Address",
+    "iotNodes": "IoT Nodes",
+    "nodes": "nodes",
+    "node": "node",
+    "notProvided": "Not provided",
+    "expandUser": "Show details",
+    "collapseUser": "Hide details",
     "showing": "Showing {count} of {total} users",
     "toast": {
       "deleted": "User deleted successfully.",
@@ -207,13 +215,13 @@
     }
   },
   "presence": {
-    "online": "Online",
+    "online": "Active now",
+    "away": "Away",
     "offline": "Offline",
-    "never": "Never seen",
+    "never": "Never active",
     "justNow": "Just now",
-    "minutesAgo": "{count} min ago",
-    "hoursAgo": "{count} hr ago",
-    "lastSeen": "Last seen"
+    "minutesAgo": "{count}m ago",
+    "hoursAgo": "{count}h ago"
   },
   "alerts": {
     "title": "Alerts",
@@ -262,6 +270,81 @@
   "gateway": {
     "title": "Gateway",
     "description": "Manage your LoRaWAN gateway connectivity"
+  },
+  "superviseSystem": {
+    "title": "Supervise System",
+    "totalNodes": "Total Nodes",
+    "activeNow": "Active Now",
+    "inactive": "Inactive",
+    "uniqueOwners": "Unique Owners",
+    "searchPlaceholder": "Search by node ID, owner, or location...",
+    "filters": {
+      "status": "Status",
+      "firmware": "Firmware",
+      "all": "All",
+      "allFirmware": "All firmware"
+    },
+    "columns": {
+      "nodeId": "Node ID",
+      "owner": "Owner",
+      "location": "Location",
+      "firmware": "Firmware",
+      "status": "Status",
+      "lastSeen": "Last Seen"
+    },
+    "statuses": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "time": {
+      "justNow": "Just now",
+      "minutesAgo": "{count} min ago",
+      "hoursAgo": "{count} hours ago"
+    },
+    "deviceIdLabel": "Device ID",
+    "locationPlaceholder": "Well A - North Field",
+    "never": "Never",
+    "noNodes": "No nodes found",
+    "editNode": "Edit Node",
+    "viewData": "View Sensor Data",
+    "errors": {
+      "load": "Failed to load nodes.",
+      "save": "Failed to save node changes."
+    },
+    "toasts": {
+      "saved": "Node updated successfully."
+    }
+  },
+  "deployUpdates": {
+    "title": "Deploy Firmware Updates",
+    "uploadSection": "Upload New Firmware",
+    "dropzone": "Drop .bin file here or click to browse",
+    "onlyBin": "Only .bin files are accepted",
+    "version": "Version",
+    "changelog": "Changelog",
+    "changelogPlaceholder": "Describe what changed in this version...",
+    "uploadBtn": "Upload Firmware",
+    "releases": "Released Versions",
+    "noReleases": "No firmware releases yet",
+    "downloads": "downloads",
+    "uploadedBy": "Uploaded by",
+    "delete": "Delete Release",
+    "deleteConfirm": "This will permanently remove this firmware release and its file.",
+    "download": "Download",
+    "showMore": "Show more",
+    "showLess": "Show less",
+    "errors": {
+      "load": "Failed to load firmware releases.",
+      "upload": "Failed to upload firmware.",
+      "delete": "Failed to delete firmware release.",
+      "invalidFile": "Only .bin files are allowed.",
+      "fileRequired": "Please choose a firmware file.",
+      "versionRequired": "Version is required."
+    },
+    "toasts": {
+      "uploaded": "Firmware uploaded successfully.",
+      "deleted": "Firmware release deleted successfully."
+    }
   },
   "support": {
     "title": "Support & Bug Reports",
@@ -366,6 +449,13 @@
       "you": "You",
       "empty": "Start the conversation by sending a message."
     },
+    "adminChat": {
+      "title": "Operator Conversations",
+      "description": "Review and reply to live chat messages from operators.",
+      "operators": "Operators",
+      "noConversations": "No operator conversations yet.",
+      "selectConversation": "Select an operator conversation to start replying."
+    },
     "detail": {
       "submittedBy": "Submitted by {name} · {email}",
       "createdAt": "Created {date}",
@@ -384,12 +474,47 @@
     "title": "IoT Water Monitoring",
     "subtitle": "Autonomous water quality analysis platform",
     "signIn": "Sign In",
+    "adminPortal": "Admin Portal →",
     "createAccount": "Create Account",
     "features": "Platform Features",
     "auth": {
       "signin": {
         "title": "Sign In",
-        "description": "Sign in to your account"
+        "description": "Sign in to your operator account",
+        "operatorBadge": "Operator Login",
+        "emailLabel": "Email",
+        "emailPlaceholder": "operator@example.com",
+        "passwordLabel": "Password",
+        "forgotPassword": "Forgot password?",
+        "submit": "Sign In",
+        "signingIn": "Signing in...",
+        "noAccount": "Don't have an account?",
+        "signUp": "Sign up",
+        "adminPrompt": "Are you an administrator?",
+        "adminPortalLink": "Sign in at the Admin Portal",
+        "errors": {
+          "invalidCredentials": "Invalid email or password.",
+          "unexpected": "An error occurred. Please try again.",
+          "adminMustUseAdminPortal": "Admin accounts must sign in through the Admin Portal."
+        }
+      },
+      "adminSignin": {
+        "badge": "Administrator Access",
+        "title": "Admin Portal",
+        "description": "Sign in with administrator credentials",
+        "emailLabel": "Email",
+        "emailPlaceholder": "admin@example.com",
+        "passwordLabel": "Password",
+        "forgotPassword": "Forgot password?",
+        "submit": "Sign In",
+        "signingIn": "Signing in...",
+        "operatorPrompt": "This page is for administrators.",
+        "operatorLink": "Go to Operator Login",
+        "errors": {
+          "invalidCredentials": "Invalid email or password.",
+          "unexpected": "An error occurred. Please try again.",
+          "operatorOnlyPortal": "This portal is for administrators only. Operators should sign in at /signin."
+        }
       },
       "signup": {
         "title": "Create Account",

@@ -4,19 +4,21 @@ import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { PasswordInput } from '@/components/ui/password-input';
 
 export default function SignInPage() {
   const router = useRouter();
   const params = useParams<{ locale?: string | string[] }>();
+  const t = useTranslations('home.auth.signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<'user' | 'admin'>('user');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -34,17 +36,22 @@ export default function SignInPage() {
         redirect: false,
         email,
         password,
-        role,
+        expectedRole: 'operator',
+        roleMismatchError: '1',
       });
 
       if (result?.error) {
-        setError(result.error);
+        if (result.error === 'ROLE_MISMATCH') {
+          setError(t('errors.adminMustUseAdminPortal'));
+        } else {
+          setError(t('errors.invalidCredentials'));
+        }
       } else {
-        router.push(role === 'admin' ? '/admin' : '/dashboard');
+        router.push(`/${locale}/dashboard`);
         router.refresh();
       }
     } catch {
-      setError('An error occurred. Please try again.');
+      setError(t('errors.unexpected'));
     } finally {
       setIsLoading(false);
     }
@@ -52,14 +59,17 @@ export default function SignInPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="absolute top-4 right-4">
+      <div className="absolute top-4 end-4">
         <ThemeToggle />
       </div>
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">Sign In</CardTitle>
+          <Badge variant="secondary" className="mb-2 w-fit">
+            {t('operatorBadge')}
+          </Badge>
+          <CardTitle className="text-2xl font-bold">{t('title')}</CardTitle>
           <CardDescription>
-            Enter your credentials to access the IoT monitoring dashboard
+            {t('description')}
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
@@ -70,24 +80,11 @@ export default function SignInPage() {
               </div>
             )}
             <div className="space-y-2">
-              <Label>Role</Label>
-              <Tabs
-                value={role}
-                onValueChange={(value) => setRole(value === 'admin' ? 'admin' : 'user')}
-                className="w-full"
-              >
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="user">User</TabsTrigger>
-                  <TabsTrigger value="admin">Admin</TabsTrigger>
-                </TabsList>
-              </Tabs>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t('emailLabel')}</Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="user@example.com"
+                placeholder={t('emailPlaceholder')}
                 autoComplete="email"
                 required
                 value={email}
@@ -95,37 +92,45 @@ export default function SignInPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
+              <Label htmlFor="password">{t('passwordLabel')}</Label>
+              <PasswordInput
                 id="password"
-                type="password"
                 placeholder="••••••••"
                 autoComplete="current-password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
-              <div className="text-right">
+              <div className="text-end">
                 <Link
                   href={`/${locale}/auth/forgot-password`}
                   className="text-sm font-medium text-primary hover:underline"
                 >
-                  Forgot password?
+                  {t('forgotPassword')}
                 </Link>
               </div>
             </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4 pt-4">
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? 'Signing in...' : 'Sign In'}
+              {isLoading ? t('signingIn') : t('submit')}
             </Button>
+            <p className="text-xs text-muted-foreground text-center leading-relaxed">
+              {t('adminPrompt')}{' '}
+              <Link
+                href={`/${locale}/admin/signin`}
+                className="font-medium text-primary hover:underline"
+              >
+                {t('adminPortalLink')}
+              </Link>
+            </p>
             <p className="text-sm text-muted-foreground text-center">
-              Don&apos;t have an account?{' '}
+              {t('noAccount')}{' '}
               <Link
                 href={`/${locale}/auth/signup`}
                 className="font-medium text-primary hover:underline"
               >
-                Sign up
+                {t('signUp')}
               </Link>
             </p>
           </CardFooter>

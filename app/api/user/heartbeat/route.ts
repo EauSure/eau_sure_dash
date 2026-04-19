@@ -2,6 +2,9 @@ import { getToken } from 'next-auth/jwt';
 import { NextRequest, NextResponse } from 'next/server';
 import { updateUserPresenceByEmail } from '@/lib/user';
 
+const ONLINE_STATUS = 'online';
+const AWAY_STATUS = 'away';
+
 export async function POST(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
   const email = typeof token?.email === 'string' ? token.email : null;
@@ -11,7 +14,10 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    await updateUserPresenceByEmail(email, true);
+    const body = await req.json().catch(() => ({} as { status?: string }));
+    const presenceStatus = body.status === AWAY_STATUS ? AWAY_STATUS : ONLINE_STATUS;
+
+    await updateUserPresenceByEmail(email, presenceStatus);
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error('[POST /api/user/heartbeat]', error);

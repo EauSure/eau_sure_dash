@@ -8,10 +8,20 @@ export interface User {
   _id: ObjectId;
   name: string;
   email: string;
+  phone?: string;
+  address?: {
+    street?: string;
+    city?: string;
+    country?: string;
+  };
+  iotNodeCount?: number;
   role?: 'user' | 'admin';
   status?: 'active' | 'suspended';
-  isOnline?: boolean;
-  lastSeen?: Date | null;
+  presence?: {
+    status: 'online' | 'away' | 'offline';
+    lastActive?: Date | null;
+    lastSeen?: Date | null;
+  };
   password?: string;
   image?: string;
   emailVerified?: Date;
@@ -77,10 +87,20 @@ export async function createUser(
     const result = await db.collection<Omit<User, '_id'>>('users').insertOne({
       name,
       email,
+      phone: '',
+      address: {
+        street: '',
+        city: '',
+        country: '',
+      },
+      iotNodeCount: 0,
       role,
       status: 'active',
-      isOnline: false,
-      lastSeen: null,
+      presence: {
+        status: 'offline',
+        lastActive: null,
+        lastSeen: null,
+      },
       password: hashedPassword,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -160,20 +180,27 @@ export async function updateUserPasswordByEmail(
  */
 export async function updateUserPresenceByEmail(
   email: string,
-  isOnline: boolean
+  presenceStatus: 'online' | 'away' | 'offline'
 ): Promise<boolean> {
   try {
     const client = await clientPromise;
     const db = client.db(DB_NAME);
 
+    const now = new Date();
+    const setFields: Record<string, Date | string> = {
+      'presence.status': presenceStatus,
+      'presence.lastSeen': now,
+      updatedAt: now,
+    };
+
+    if (presenceStatus === 'online') {
+      setFields['presence.lastActive'] = now;
+    }
+
     const result = await db.collection<User>('users').updateOne(
       { email },
       {
-        $set: {
-          isOnline,
-          lastSeen: new Date(),
-          updatedAt: new Date(),
-        },
+        $set: setFields,
       }
     );
 

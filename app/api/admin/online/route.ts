@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getClient } from '@/lib/mongodb';
 import type { User } from '@/lib/user';
 
-const ONLINE_WINDOW_MS = 60_000;
+const OFFLINE_THRESHOLD_MS = 10 * 60 * 1000;
 
 export async function GET(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
@@ -18,13 +18,14 @@ export async function GET(req: NextRequest) {
     const db = client.db(process.env.MONGODB_DB || 'water_quality');
     const users = db.collection<User>('users');
 
-    const onlineThreshold = new Date(Date.now() - ONLINE_WINDOW_MS);
+    const now = Date.now();
+    const onlineThreshold = new Date(now - OFFLINE_THRESHOLD_MS);
 
     const admin = await users.findOne(
       {
         role: 'admin',
-        isOnline: true,
-        lastSeen: { $gte: onlineThreshold },
+        'presence.lastSeen': { $gte: onlineThreshold },
+        'presence.status': { $in: ['online', 'away'] },
       },
       {
         projection: { _id: 1 },

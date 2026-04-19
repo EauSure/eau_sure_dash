@@ -8,17 +8,22 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Check } from 'lucide-react';
 
-export default async function Home() {
+export default async function Home({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
   const session = await getServerSession(authOptions);
   const t = await getTranslations('home');
 
   if (session) {
-    redirect(session.user.role === 'admin' ? '/admin' : '/dashboard');
+    redirect(session.user.role === 'admin' ? `/${locale}/admin` : `/${locale}/dashboard`);
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="absolute top-4 right-4">
+      <div className="absolute top-4 end-4">
         <ThemeToggle />
       </div>
       <Card className="w-full max-w-md">
@@ -33,13 +38,19 @@ export default async function Home() {
 
         <CardContent className="space-y-6">
           <div className="space-y-3">
-            <Link href="/fr/auth/signin" className="block">
+            <Link href={`/${locale}/auth/signin`} className="block">
               <Button className="w-full" size="lg">
                 {t('signIn')}
               </Button>
             </Link>
 
-            <Link href="/auth/signup" className="block">
+            <p className="text-center text-xs text-muted-foreground">
+              <Link href={`/${locale}/admin/signin`} className="hover:underline">
+                {t('adminPortal')}
+              </Link>
+            </p>
+
+            <Link href={`/${locale}/auth/signup`} className="block">
               <Button variant="outline" className="w-full" size="lg">
                 {t('createAccount')}
               </Button>

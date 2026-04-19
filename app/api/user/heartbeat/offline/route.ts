@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    await updateUserPresenceByEmail(email, false);
+    await updateUserPresenceByEmail(email, 'offline');
   } catch (error) {
     console.error('[POST /api/user/heartbeat/offline]', error);
   }

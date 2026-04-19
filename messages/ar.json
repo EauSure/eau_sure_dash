@@ -197,6 +197,14 @@
     "refresh": "تحديث",
     "cancel": "إلغاء",
     "working": "جار التنفيذ...",
+    "phone": "الهاتف",
+    "address": "العنوان",
+    "iotNodes": "عقد إنترنت الأشياء",
+    "nodes": "عقد",
+    "node": "عقدة",
+    "notProvided": "غير متوفر",
+    "expandUser": "عرض التفاصيل",
+    "collapseUser": "إخفاء التفاصيل",
     "showing": "عرض {count} من أصل {total} مستخدم",
     "toast": {
       "deleted": "تم حذف المستخدم بنجاح.",
@@ -205,13 +213,13 @@
     }
   },
   "presence": {
-    "online": "متصل",
+    "online": "نشط الآن",
+    "away": "بعيد",
     "offline": "غير متصل",
-    "never": "لم يظهر من قبل",
+    "never": "لم يكن نشطًا من قبل",
     "justNow": "الآن",
-    "minutesAgo": "منذ {count} دقيقة",
-    "hoursAgo": "منذ {count} ساعة",
-    "lastSeen": "آخر ظهور"
+    "minutesAgo": "منذ {count}د",
+    "hoursAgo": "منذ {count}س"
   },
   "alerts": {
     "title": "التنبيهات",
@@ -260,6 +268,81 @@
   "gateway": {
     "title": "البوابة",
     "description": "إدارة اتصال بوابة LoRaWAN لديك"
+  },
+  "superviseSystem": {
+    "title": "الإشراف على النظام",
+    "totalNodes": "إجمالي العقد",
+    "activeNow": "النشطة الآن",
+    "inactive": "غير النشطة",
+    "uniqueOwners": "المالكون الفريدون",
+    "searchPlaceholder": "ابحث برقم العقدة أو اسم المالك أو الموقع...",
+    "filters": {
+      "status": "الحالة",
+      "firmware": "البرنامج الثابت",
+      "all": "الكل",
+      "allFirmware": "كل الإصدارات"
+    },
+    "columns": {
+      "nodeId": "معرّف العقدة",
+      "owner": "المالك",
+      "location": "الموقع",
+      "firmware": "البرنامج الثابت",
+      "status": "الحالة",
+      "lastSeen": "آخر ظهور"
+    },
+    "statuses": {
+      "active": "نشط",
+      "inactive": "غير نشط"
+    },
+    "time": {
+      "justNow": "الآن",
+      "minutesAgo": "منذ {count} دقيقة",
+      "hoursAgo": "منذ {count} ساعة"
+    },
+    "deviceIdLabel": "معرّف الجهاز",
+    "locationPlaceholder": "البئر أ - الحقل الشمالي",
+    "never": "أبدًا",
+    "noNodes": "لم يتم العثور على عقد",
+    "editNode": "تعديل العقدة",
+    "viewData": "عرض بيانات المستشعر",
+    "errors": {
+      "load": "فشل تحميل العقد.",
+      "save": "فشل حفظ تعديلات العقدة."
+    },
+    "toasts": {
+      "saved": "تم تحديث العقدة بنجاح."
+    }
+  },
+  "deployUpdates": {
+    "title": "نشر تحديثات البرنامج الثابت",
+    "uploadSection": "رفع برنامج ثابت جديد",
+    "dropzone": "اسحب ملف .bin هنا أو انقر للتصفح",
+    "onlyBin": "يُسمح فقط بملفات .bin",
+    "version": "الإصدار",
+    "changelog": "سجل التغييرات",
+    "changelogPlaceholder": "صف ما الذي تغيّر في هذا الإصدار...",
+    "uploadBtn": "رفع البرنامج الثابت",
+    "releases": "الإصدارات المنشورة",
+    "noReleases": "لا توجد إصدارات برنامج ثابت حتى الآن",
+    "downloads": "تنزيلات",
+    "uploadedBy": "تم الرفع بواسطة",
+    "delete": "حذف الإصدار",
+    "deleteConfirm": "سيؤدي هذا إلى حذف هذا الإصدار وملفه نهائيًا.",
+    "download": "تنزيل",
+    "showMore": "عرض المزيد",
+    "showLess": "عرض أقل",
+    "errors": {
+      "load": "فشل تحميل إصدارات البرنامج الثابت.",
+      "upload": "فشل رفع البرنامج الثابت.",
+      "delete": "فشل حذف الإصدار.",
+      "invalidFile": "يُسمح فقط بملفات .bin.",
+      "fileRequired": "يرجى اختيار ملف برنامج ثابت.",
+      "versionRequired": "الإصدار مطلوب."
+    },
+    "toasts": {
+      "uploaded": "تم رفع البرنامج الثابت بنجاح.",
+      "deleted": "تم حذف الإصدار بنجاح."
+    }
   },
   "support": {
     "title": "الدعم وتقارير الأخطاء",
@@ -364,6 +447,13 @@
       "you": "أنت",
       "empty": "ابدأ المحادثة بإرسال رسالة."
     },
+    "adminChat": {
+      "title": "محادثات المشغلين",
+      "description": "راجع رسائل الدردشة المباشرة من المشغلين وقم بالرد عليها.",
+      "operators": "المشغلون",
+      "noConversations": "لا توجد محادثات مشغلين حتى الآن.",
+      "selectConversation": "اختر محادثة مشغل لبدء الرد."
+    },
     "detail": {
       "submittedBy": "تم الإرسال بواسطة {name} · {email}",
       "createdAt": "أُنشئت في {date}",
@@ -382,12 +472,47 @@
     "title": "مراقبة المياه IoT",
     "subtitle": "منصة تحليل جودة المياه المستقلة",
     "signIn": "تسجيل الدخول",
+    "adminPortal": "بوابة المشرف →",
     "createAccount": "إنشاء حساب",
     "features": "ميزات المنصة",
     "auth": {
       "signin": {
         "title": "تسجيل الدخول",
-        "description": "قم بتسجيل الدخول إلى حسابك"
+        "description": "سجّل الدخول إلى حساب المشغل الخاص بك",
+        "operatorBadge": "دخول المشغل",
+        "emailLabel": "البريد الإلكتروني",
+        "emailPlaceholder": "operator@example.com",
+        "passwordLabel": "كلمة المرور",
+        "forgotPassword": "هل نسيت كلمة المرور؟",
+        "submit": "تسجيل الدخول",
+        "signingIn": "جار تسجيل الدخول...",
+        "noAccount": "ليس لديك حساب؟",
+        "signUp": "إنشاء حساب",
+        "adminPrompt": "هل أنت مسؤول؟",
+        "adminPortalLink": "سجّل الدخول عبر بوابة المشرف",
+        "errors": {
+          "invalidCredentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
+          "unexpected": "حدث خطأ. يرجى المحاولة مرة أخرى.",
+          "adminMustUseAdminPortal": "يجب على حسابات المسؤول تسجيل الدخول عبر بوابة المشرف."
+        }
+      },
+      "adminSignin": {
+        "badge": "وصول المسؤول",
+        "title": "بوابة المشرف",
+        "description": "سجّل الدخول باستخدام بيانات اعتماد المسؤول",
+        "emailLabel": "البريد الإلكتروني",
+        "emailPlaceholder": "admin@example.com",
+        "passwordLabel": "كلمة المرور",
+        "forgotPassword": "هل نسيت كلمة المرور؟",
+        "submit": "تسجيل الدخول",
+        "signingIn": "جار تسجيل الدخول...",
+        "operatorPrompt": "هذه الصفحة مخصصة للمسؤولين.",
+        "operatorLink": "الانتقال إلى دخول المشغل",
+        "errors": {
+          "invalidCredentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
+          "unexpected": "حدث خطأ. يرجى المحاولة مرة أخرى.",
+          "operatorOnlyPortal": "هذه البوابة مخصصة للمسؤولين فقط. يجب على المشغلين تسجيل الدخول عبر /signin."
+        }
       },
       "signup": {
         "title": "إنشاء حساب",

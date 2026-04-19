@@ -14,6 +14,8 @@ export const authOptions: NextAuthOptions = {
         email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
         role: { label: 'Role', type: 'text' },
+        expectedRole: { label: 'Expected Role', type: 'text' },
+        roleMismatchError: { label: 'Role Mismatch Error', type: 'text' },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
@@ -43,6 +45,20 @@ export const authOptions: NextAuthOptions = {
         }
 
         const actualRole: 'user' | 'admin' = user.role === 'admin' ? 'admin' : 'user';
+        const expectedRole =
+          credentials.expectedRole === 'admin'
+            ? 'admin'
+            : credentials.expectedRole === 'operator' || credentials.expectedRole === 'user'
+              ? 'user'
+              : null;
+
+        if (expectedRole && actualRole !== expectedRole) {
+          // Use an opaque code for UI-level role guidance without exposing user existence in APIs.
+          if (credentials.roleMismatchError === '1') {
+            throw new Error('ROLE_MISMATCH');
+          }
+          return null;
+        }
 
         if (requestedRole === 'admin' && actualRole !== 'admin') {
           throw new Error('Your account does not have admin access');
