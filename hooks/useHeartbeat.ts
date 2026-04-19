@@ -16,10 +16,11 @@ const ACTIVITY_EVENTS: Array<keyof WindowEventMap> = [
 type PresenceStatus = 'online' | 'away';
 
 export function useHeartbeat() {
-  const { status } = useSession();
+  const { data: session, status } = useSession();
   const heartbeatTimerRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
   const awayTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const currentStatusRef = useRef<PresenceStatus>('online');
+  const wasAuthenticatedRef = useRef(false);
 
   const sendPresence = useCallback(async (presenceStatus: PresenceStatus) => {
     try {
@@ -55,9 +56,17 @@ export function useHeartbeat() {
   }, [scheduleAway, sendPresence]);
 
   useEffect(() => {
-    if (status !== 'authenticated') {
+    const isAuthenticated = status === 'authenticated' && Boolean(session?.user);
+
+    if (!isAuthenticated) {
+      if (wasAuthenticatedRef.current) {
+        navigator.sendBeacon('/api/user/heartbeat/offline');
+      }
+      wasAuthenticatedRef.current = false;
       return;
     }
+
+    wasAuthenticatedRef.current = true;
 
     currentStatusRef.current = 'online';
     void sendPresence('online');
@@ -97,5 +106,5 @@ export function useHeartbeat() {
       document.removeEventListener('visibilitychange', handleVisibility);
       window.removeEventListener('beforeunload', handleUnload);
     };
-  }, [handleActivity, scheduleAway, sendPresence, status]);
+  }, [handleActivity, scheduleAway, sendPresence, session?.user, status]);
 }

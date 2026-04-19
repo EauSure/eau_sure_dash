@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
+import { signOut } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -42,6 +43,11 @@ type DashboardLayoutProps = {
   };
 };
 
+function getLocaleFromPath(pathname: string): string {
+  const locale = pathname.split('/')[1];
+  return locale === 'en' || locale === 'fr' || locale === 'ar' ? locale : 'fr';
+}
+
 export function DashboardLayout({
   children,
   navigation,
@@ -51,6 +57,8 @@ export function DashboardLayout({
   const pathname = usePathname();
   const t = useTranslations('navigation');
   const tApp = useTranslations('app');
+  const locale = getLocaleFromPath(pathname);
+  const resolvedSignOutCallback = `/${locale}/auth/signin`;
   
   // Initialize state from localStorage immediately to avoid animation flash
   const [isCollapsed, setIsCollapsed] = useState(() => {
@@ -79,6 +87,19 @@ export function DashboardLayout({
   ];
 
   const navigationItems = navigation ?? defaultNavigation;
+
+  const handleSignOut = async () => {
+    try {
+      await fetch('/api/user/heartbeat/offline', {
+        method: 'POST',
+        keepalive: true,
+      });
+    } catch {
+      // Sign-out should continue even if offline update fails.
+    }
+
+    await signOut({ callbackUrl: resolvedSignOutCallback });
+  };
 
   return (
     <div className="flex h-screen">
@@ -135,18 +156,17 @@ export function DashboardLayout({
         <Separator />
         
         <div className={cn("p-4 transition-all duration-300", isCollapsed && "px-2")}>
-          <form action="/api/auth/signout" method="POST">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className={cn("w-full transition-all duration-300", isCollapsed && "justify-center px-2")} 
-              type="submit"
-              title={isCollapsed ? t('signOut') : undefined}
-            >
-              <LogOut className={cn("h-4 w-4 transition-all duration-300", !isCollapsed && "mr-2")} />
-              {!isCollapsed && <span className="opacity-100 transition-opacity duration-200">{t('signOut')}</span>}
-            </Button>
-          </form>
+          <Button
+            variant="outline"
+            size="sm"
+            className={cn("w-full transition-all duration-300", isCollapsed && "justify-center px-2")}
+            type="button"
+            onClick={() => void handleSignOut()}
+            title={isCollapsed ? t('signOut') : undefined}
+          >
+            <LogOut className={cn("h-4 w-4 transition-all duration-300", !isCollapsed && "mr-2")} />
+            {!isCollapsed && <span className="opacity-100 transition-opacity duration-200">{t('signOut')}</span>}
+          </Button>
         </div>
       </aside>
 

@@ -210,3 +210,39 @@ export async function updateUserPresenceByEmail(
     return false;
   }
 }
+
+/**
+ * Update user presence by ID
+ */
+export async function updateUserPresenceById(
+  id: string,
+  presenceStatus: 'online' | 'away' | 'offline'
+): Promise<boolean> {
+  try {
+    const client = await clientPromise;
+    const db = client.db(DB_NAME);
+
+    const now = new Date();
+    const setFields: Record<string, Date | string> = {
+      'presence.status': presenceStatus,
+      'presence.lastSeen': now,
+      updatedAt: now,
+    };
+
+    if (presenceStatus === 'online') {
+      setFields['presence.lastActive'] = now;
+    }
+
+    const result = await db.collection<User>('users').updateOne(
+      { _id: new ObjectId(id) },
+      {
+        $set: setFields,
+      }
+    );
+
+    return result.matchedCount > 0;
+  } catch (error) {
+    console.error('Error updating user presence by ID:', error);
+    return false;
+  }
+}

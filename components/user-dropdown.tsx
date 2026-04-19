@@ -41,6 +41,19 @@ export function UserDropdown({
   const locale = getLocaleFromPath(pathname);
   const resolvedSignOutCallback = signOutCallbackUrl || `/${locale}/auth/signin`;
 
+  const handleSignOut = async () => {
+    try {
+      await fetch('/api/user/heartbeat/offline', {
+        method: 'POST',
+        keepalive: true,
+      });
+    } catch {
+      // Sign-out should continue even if offline update fails.
+    }
+
+    await signOut({ callbackUrl: resolvedSignOutCallback });
+  };
+
   if (!session?.user) {
     return null;
   }
@@ -94,7 +107,7 @@ export function UserDropdown({
           </>
         )}
         <DropdownMenuItem
-          onClick={() => signOut({ callbackUrl: resolvedSignOutCallback })}
+          onClick={() => void handleSignOut()}
           className="text-destructive focus:text-destructive"
         >
           <LogOut className="mr-2 h-4 w-4" />

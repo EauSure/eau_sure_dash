@@ -31,6 +31,11 @@ type AdminUserDTO = {
 };
 
 function computeStatus(user: User, now: number): PresenceStatus {
+  const storedStatus = user.presence?.status;
+  if (storedStatus === 'offline') {
+    return 'offline';
+  }
+
   const lastSeenValue = user.presence?.lastSeen;
   if (!lastSeenValue) {
     return 'offline';
@@ -44,7 +49,6 @@ function computeStatus(user: User, now: number): PresenceStatus {
     return 'away';
   }
 
-  const storedStatus = user.presence?.status;
   return storedStatus === 'away' ? 'away' : 'online';
 }
 

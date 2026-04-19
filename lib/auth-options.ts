@@ -3,7 +3,11 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import { MongoDBAdapter } from '@auth/mongodb-adapter';
 import clientPromise from './mongodb';
 import { comparePassword } from './auth';
-import { getUserByEmail, updateUserPresenceByEmail } from './user';
+import {
+  getUserByEmail,
+  updateUserPresenceByEmail,
+  updateUserPresenceById,
+} from './user';
 
 export const authOptions: NextAuthOptions = {
   adapter: MongoDBAdapter(clientPromise),
@@ -87,7 +91,7 @@ export const authOptions: NextAuthOptions = {
         token.role = user.role;
 
         if (typeof user.email === 'string') {
-          await updateUserPresenceByEmail(user.email, true);
+          await updateUserPresenceByEmail(user.email, 'online');
         }
       }
       
@@ -122,6 +126,10 @@ export const authOptions: NextAuthOptions = {
   },
   events: {
     async signOut(message) {
+      const tokenUserId =
+        message && typeof message === 'object' && 'token' in message
+          ? (message.token?.id as string | undefined)
+          : undefined;
       const tokenEmail =
         message && typeof message === 'object' && 'token' in message
           ? (message.token?.email as string | undefined)
@@ -131,9 +139,14 @@ export const authOptions: NextAuthOptions = {
           ? message.session?.user?.email || undefined
           : undefined;
 
+      if (tokenUserId) {
+        await updateUserPresenceById(tokenUserId, 'offline');
+        return;
+      }
+
       const email = tokenEmail || sessionEmail;
       if (email) {
-        await updateUserPresenceByEmail(email, false);
+        await updateUserPresenceByEmail(email, 'offline');
       }
     },
   },
