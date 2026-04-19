@@ -8,7 +8,6 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
-import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,6 +26,7 @@ import { Loader2, User as UserIcon } from 'lucide-react';
 import type { CompleteUserProfile } from '@/types/user-profile';
 import { AvatarSelector } from '@/components/avatar-selector';
 import { PhoneInput } from '@/components/ui/phone-input';
+import { useT } from '@/lib/useT';
 
 const profileFormSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100),
@@ -43,8 +43,8 @@ export default function ProfilePage() {
   const { data: session, status, update } = useSession();
   const router = useRouter();
   const params = useParams<{ locale?: string | string[] }>();
-  const t = useTranslations('profile');
-  const tCommon = useTranslations('common');
+  const t = useT('profile');
+  const tCommon = useT('common');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [profile, setProfile] = useState<CompleteUserProfile | null>(null);
@@ -67,14 +67,14 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (status === 'unauthenticated') {
-      router.push('/fr/auth/signin');
+      router.push(`/${locale}/auth/signin`);
       return;
     }
 
     if (status === 'authenticated') {
       fetchProfile();
     }
-  }, [status, router]);
+  }, [locale, status, router]);
 
   const fetchProfile = async () => {
     try {

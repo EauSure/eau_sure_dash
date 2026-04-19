@@ -3,6 +3,13 @@
     "save": "Save Changes",
     "discard": "Discard",
     "loading": "Loading...",
+    "language": "Language",
+    "keepMeSignedInFor30Days": "Keep me signed in for 30 days",
+    "localeNames": {
+      "fr": "French",
+      "en": "English",
+      "ar": "Arabic"
+    },
     "unsavedChanges": "Unsaved Changes",
     "allChangesSaved": "All Changes Saved"
   },
@@ -18,12 +25,16 @@
     "gateway": "Gateway",
     "profile": "Profile",
     "settings": "Settings",
+    "updates": "Updates",
+    "support": "Support",
+    "collapse": "Collapse",
     "signOut": "Sign Out"
   },
   "userMenu": {
     "profile": "Profile",
     "settings": "Settings",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "anonymous": "User"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -486,6 +497,7 @@
         "emailPlaceholder": "operator@example.com",
         "passwordLabel": "Password",
         "forgotPassword": "Forgot password?",
+        "rememberMe": "Keep me signed in for 30 days",
         "submit": "Sign In",
         "signingIn": "Signing in...",
         "noAccount": "Don't have an account?",
@@ -529,5 +541,10 @@
         "description": "Enter your new password"
       }
     }
+  }
+  ,"errors": {
+    "roleOperatorOnly": "This portal is for operators only.",
+    "roleAdminOnly": "This portal is for administrators only.",
+    "sessionExpired": "Your session has expired. Please sign in again."
   }
 }

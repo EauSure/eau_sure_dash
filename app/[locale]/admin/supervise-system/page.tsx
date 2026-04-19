@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { useLocale, useTranslations } from 'next-intl';
+import { useLocale } from 'next-intl';
 import { toast } from 'sonner';
 import { MoreHorizontal, Search } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +13,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
+import { useT } from '@/lib/useT';
 
 type NodeStatusFilter = 'all' | 'active' | 'inactive';
 
@@ -32,8 +33,8 @@ type IotNode = {
 };
 
 export default function SuperviseSystemPage() {
-  const t = useTranslations('superviseSystem');
-  const tCommon = useTranslations('common');
+  const t = useT('superviseSystem');
+  const tCommon = useT('common');
   const locale = useLocale();
 
   const [nodes, setNodes] = useState<IotNode[]>([]);

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { useLocale, useTranslations } from 'next-intl';
+import { useLocale } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import { z } from 'zod';
@@ -36,6 +36,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
+import { useT } from '@/lib/useT';
 import { isRecentTimestamp, type SerializedChat } from '@/lib/chat';
 import {
   ticketCategories,
@@ -83,7 +84,7 @@ export default function SupportPage() {
   const { status } = useSession();
   const router = useRouter();
   const locale = useLocale();
-  const t = useTranslations('support');
+  const t = useT('support');
   const isRtl = locale === 'ar';
   const [currentView, setCurrentView] = useState<SupportView>('landing');
   const [tickets, setTickets] = useState<UserTicket[]>([]);

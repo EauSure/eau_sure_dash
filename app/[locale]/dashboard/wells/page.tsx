@@ -1,16 +1,20 @@
 import { getServerSession } from 'next-auth/next';
 import { redirect } from 'next/navigation';
-import { useTranslations } from 'next-intl';
 import { authOptions } from '@/lib/auth-options';
 import { Droplets } from 'lucide-react';
 
 // Note: This is a server component, so we need to pass translations as props
 // For now, using English as fallback - will be handled by client wrapper
-export default async function WellsPage() {
+export default async function WellsPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
   const session = await getServerSession(authOptions);
 
   if (!session) {
-    redirect('/fr/auth/signin');
+    redirect(`/${locale}/auth/signin`);
   }
 
   return (

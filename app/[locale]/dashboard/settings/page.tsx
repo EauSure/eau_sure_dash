@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
-import { useTranslations, useLocale } from 'next-intl';
+import { useLocale } from 'next-intl';
 import { motion } from 'framer-motion';
 import { useRouter, usePathname } from '@/i18n/routing';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -31,6 +31,7 @@ import {
 } from '@/components/ui/form';
 import { Separator } from '@/components/ui/separator';
 import { Loader2, Globe, Bell, Gauge, Save, X } from 'lucide-react';
+import { useT } from '@/lib/useT';
 import type { CompleteUserProfile } from '@/types/user-profile';
 
 const settingsFormSchema = z.object({
@@ -67,8 +68,8 @@ const languages = [
 ];
 
 export default function SettingsPage() {
-  const t = useTranslations('settings');
-  const tCommon = useTranslations('common');
+  const t = useT('settings');
+  const tCommon = useT('common');
   const currentLocale = useLocale();
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -97,14 +98,14 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (status === 'unauthenticated') {
-      router.push('/fr/auth/signin');
+      router.push(`/${currentLocale}/auth/signin`);
       return;
     }
 
     if (status === 'authenticated') {
       fetchProfile();
     }
-  }, [status, router]);
+  }, [currentLocale, status, router]);
 
   const fetchProfile = async () => {
     try {

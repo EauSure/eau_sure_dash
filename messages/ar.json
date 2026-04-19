@@ -3,6 +3,13 @@
     "save": "حفظ التغييرات",
     "discard": "تجاهل",
     "loading": "جار التحميل...",
+    "language": "اللغة",
+    "keepMeSignedInFor30Days": "أبقني مسجلاً للدخول لمدة 30 يوماً",
+    "localeNames": {
+      "fr": "الفرنسية",
+      "en": "الإنجليزية",
+      "ar": "العربية"
+    },
     "unsavedChanges": "تغييرات غير محفوظة",
     "allChangesSaved": "تم حفظ جميع التغييرات"
   },  "app": {
@@ -17,12 +24,16 @@
     "gateway": "البوابة",
     "profile": "الملف الشخصي",
     "settings": "الإعدادات",
+    "updates": "التحديثات",
+    "support": "الدعم",
+    "collapse": "طي",
     "signOut": "تسجيل الخروج"
   },
   "userMenu": {
     "profile": "الملف الشخصي",
     "settings": "الإعدادات",
-    "signOut": "تسجيل الخروج"
+    "signOut": "تسجيل الخروج",
+    "anonymous": "مستخدم"
   },
   "dashboard": {
     "title": "لوحة التحكم",
@@ -484,6 +495,7 @@
         "emailPlaceholder": "operator@example.com",
         "passwordLabel": "كلمة المرور",
         "forgotPassword": "هل نسيت كلمة المرور؟",
+        "rememberMe": "أبقني مسجلاً للدخول لمدة 30 يوماً",
         "submit": "تسجيل الدخول",
         "signingIn": "جار تسجيل الدخول...",
         "noAccount": "ليس لديك حساب؟",
@@ -527,5 +539,10 @@
         "description": "أدخل كلمة المرور الجديدة الخاصة بك"
       }
     }
+  }
+  ,"errors": {
+    "roleOperatorOnly": "هذه البوابة مخصصة للمشغلين فقط.",
+    "roleAdminOnly": "هذه البوابة مخصصة للمسؤولين فقط.",
+    "sessionExpired": "انتهت جلستك. يرجى تسجيل الدخول مرة أخرى."
   }
 }

@@ -2,7 +2,6 @@
 
 import { signOut, useSession } from 'next-auth/react';
 import { usePathname, useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -14,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { User, Settings, LogOut } from 'lucide-react';
+import { useT } from '@/lib/useT';
 
 type UserDropdownProps = {
   profileHref?: string;
@@ -36,7 +36,7 @@ export function UserDropdown({
   const { data: session } = useSession();
   const router = useRouter();
   const pathname = usePathname();
-  const t = useTranslations('userMenu');
+  const t = useT('userMenu');
 
   const locale = getLocaleFromPath(pathname);
   const resolvedSignOutCallback = signOutCallbackUrl || `/${locale}/auth/signin`;
@@ -65,7 +65,7 @@ export function UserDropdown({
         .join('')
         .toUpperCase()
         .slice(0, 2)
-    : session.user.email?.[0].toUpperCase() || 'U';
+    : session.user.email?.[0].toUpperCase() || t('anonymous');
 
   return (
     <DropdownMenu>
@@ -96,11 +96,11 @@ export function UserDropdown({
         {showProfileSettings && (
           <>
             <DropdownMenuItem onClick={() => router.push(profileHref)}>
-              <User className="mr-2 h-4 w-4" />
+              <User className="me-2 h-4 w-4" />
               <span>{t('profile')}</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => router.push(settingsHref)}>
-              <Settings className="mr-2 h-4 w-4" />
+              <Settings className="me-2 h-4 w-4" />
               <span>{t('settings')}</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
@@ -110,7 +110,7 @@ export function UserDropdown({
           onClick={() => void handleSignOut()}
           className="text-destructive focus:text-destructive"
         >
-          <LogOut className="mr-2 h-4 w-4" />
+          <LogOut className="me-2 h-4 w-4" />
           <span>{t('signOut')}</span>
         </DropdownMenuItem>
       </DropdownMenuContent>

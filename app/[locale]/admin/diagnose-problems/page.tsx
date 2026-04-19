@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { useLocale, useTranslations } from 'next-intl';
+import { useLocale } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
@@ -30,6 +30,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
+import { useT } from '@/lib/useT';
 import { isRecentTimestamp, type SerializedChat } from '@/lib/chat';
 import {
   ticketCategories,
@@ -116,8 +117,8 @@ export default function DiagnoseProblemsPage() {
   const { status: sessionStatus } = useSession();
   const router = useRouter();
   const locale = useLocale();
-  const t = useTranslations('support');
-  const tAdmin = useTranslations('admin.diagnoseProblems');
+  const t = useT('support');
+  const tAdmin = useT('admin.diagnoseProblems');
 
   const [tickets, setTickets] = useState<TicketResponse[]>([]);
   const [meta, setMeta] = useState<TicketListMeta>({

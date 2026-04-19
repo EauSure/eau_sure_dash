@@ -4,7 +4,6 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { signIn } from 'next-auth/react';
 import { useParams, useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -12,11 +11,12 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PasswordInput } from '@/components/ui/password-input';
+import { useT } from '@/lib/useT';
 
 export default function AdminSignInPage() {
   const router = useRouter();
   const params = useParams<{ locale?: string | string[] }>();
-  const t = useTranslations('home.auth.adminSignin');
+  const t = useT('home.auth.adminSignin');
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

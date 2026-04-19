@@ -2,6 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
   try {
+    const origin = request.headers.get('origin') || request.headers.get('referer');
+
+    if (origin) {
+      const sourceOrigin = new URL(origin).origin;
+      if (sourceOrigin !== request.nextUrl.origin) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
+    }
+
     const body = await request.json();
     const { locale, scope } = body;
 

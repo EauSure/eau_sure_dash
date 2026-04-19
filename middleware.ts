@@ -1,5 +1,6 @@
 import { getToken } from 'next-auth/jwt';
 import { NextRequest, NextResponse } from 'next/server';
+import { isSameOriginRequest } from '@/lib/csrf';
 
 const locales = ['en', 'fr', 'ar'] as const;
 const defaultLocale = 'fr';
@@ -44,14 +45,27 @@ function isAdminAreaPath(pathname: string): boolean {
   return localizedPath === '/admin' || localizedPath.startsWith('/admin/');
 }
 
+async function fingerprintFromUserAgent(userAgent: string): Promise<string> {
+  const encoded = new TextEncoder().encode(userAgent);
+  const digest = await crypto.subtle.digest('SHA-256', encoded);
+  return Array.from(new Uint8Array(digest))
+    .slice(0, 8)
+    .map((byte) => byte.toString(16).padStart(2, '0'))
+    .join('');
+}
+
 export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (apiAuthExclusions.some((route) => pathname.startsWith(route))) {
-    return NextResponse.next();
-  }
-
   if (pathname.startsWith('/api/')) {
+    if (request.method === 'POST' && !isSameOriginRequest(request)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    if (apiAuthExclusions.some((route) => pathname.startsWith(route))) {
+      return NextResponse.next();
+    }
+
     return NextResponse.next();
   }
 
@@ -85,6 +99,13 @@ export default async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL(`/${locale}/admin`, request.url));
     }
 
+    const currentFingerprint = await fingerprintFromUserAgent(request.headers.get('user-agent') || '');
+    if (token?.fingerprint && token.fingerprint !== currentFingerprint) {
+      const response = NextResponse.redirect(new URL(`/${locale}/auth/signin`, request.url));
+      response.cookies.delete(process.env.NODE_ENV === 'production' ? '__Host-eausure.session' : 'eausure.session');
+      return response;
+    }
+
     return NextResponse.next();
   }
 
@@ -111,6 +132,14 @@ export default async function middleware(request: NextRequest) {
     if (isAdminRoute && token.role !== 'admin') {
       return NextResponse.redirect(new URL(`/${locale}/dashboard`, request.url));
     }
+
+    const currentFingerprint = await fingerprintFromUserAgent(request.headers.get('user-agent') || '');
+    if (token.fingerprint && token.fingerprint !== currentFingerprint) {
+      const signInUrl = new URL(`/${locale}/auth/signin`, request.url);
+      const response = NextResponse.redirect(signInUrl);
+      response.cookies.delete(process.env.NODE_ENV === 'production' ? '__Host-eausure.session' : 'eausure.session');
+      return response;
+    }
   }
 
   return NextResponse.next();
@@ -118,6 +147,6 @@ export default async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    '/((?!_next/static|_next/image|favicon.ico).*)',
   ]
 };

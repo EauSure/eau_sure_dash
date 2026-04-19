@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
+import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,30 +12,45 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { PasswordInput } from '@/components/ui/password-input';
+import { useT } from '@/lib/useT';
+
+type SignInFormValues = {
+  email: string;
+  password: string;
+  rememberMe: boolean;
+};
 
 export default function SignInPage() {
   const router = useRouter();
   const params = useParams<{ locale?: string | string[] }>();
-  const t = useTranslations('home.auth.signin');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const t = useT('home.auth.signin');
+  const {
+    register,
+    handleSubmit,
+  } = useForm<SignInFormValues>({
+    defaultValues: {
+      email: '',
+      password: '',
+      rememberMe: false,
+    },
+  });
 
   const locale = Array.isArray(params?.locale)
     ? (params.locale[0] ?? 'fr')
     : (params?.locale ?? 'fr');
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (values: SignInFormValues) => {
     setError('');
     setIsLoading(true);
 
     try {
       const result = await signIn('credentials', {
         redirect: false,
-        email,
-        password,
+        email: values.email,
+        password: values.password,
+        rememberMe: String(values.rememberMe),
         expectedRole: 'operator',
         roleMismatchError: '1',
       });
@@ -72,7 +87,7 @@ export default function SignInPage() {
             {t('description')}
           </CardDescription>
         </CardHeader>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit(onSubmit)}>
           <CardContent className="space-y-4">
             {error && (
               <div className="rounded-md bg-destructive/10 p-3 border border-destructive/20">
@@ -87,8 +102,7 @@ export default function SignInPage() {
                 placeholder={t('emailPlaceholder')}
                 autoComplete="email"
                 required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                {...register('email', { required: true })}
               />
             </div>
             <div className="space-y-2">
@@ -98,8 +112,7 @@ export default function SignInPage() {
                 placeholder="••••••••"
                 autoComplete="current-password"
                 required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                {...register('password', { required: true })}
               />
               <div className="text-end">
                 <Link
@@ -110,6 +123,14 @@ export default function SignInPage() {
                 </Link>
               </div>
             </div>
+            <label className="flex items-start gap-3 rounded-md border border-border bg-muted/30 p-3">
+              <input
+                type="checkbox"
+                className="mt-1 h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                {...register('rememberMe')}
+              />
+              <span className="text-sm text-foreground">{t('rememberMe')}</span>
+            </label>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4 pt-4">
             <Button type="submit" className="w-full" disabled={isLoading}>

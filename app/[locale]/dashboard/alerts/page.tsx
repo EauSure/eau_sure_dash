@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
@@ -16,6 +15,7 @@ import {
 } from '@/components/ui/table';
 import { AlertTriangle, Bell, ShieldAlert } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useT } from '@/lib/useT';
 import type { EauSurePaginatedResponse, EauSureSensorData } from '@/types/eausure';
 
 type FeedSeverity = 'Critical' | 'Warning' | 'Info';
@@ -29,7 +29,7 @@ function deriveSeverity(item: EauSureSensorData): FeedSeverity {
 }
 
 export default function AlertsPage() {
-  const t = useTranslations('alerts');
+  const t = useT('alerts');
   const [feed, setFeed] = useState<EauSureSensorData[]>([]);
   const [loading, setLoading] = useState(true);
 

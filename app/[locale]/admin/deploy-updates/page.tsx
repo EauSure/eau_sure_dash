@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { useLocale, useTranslations } from 'next-intl';
+import { useLocale } from 'next-intl';
 import { toast } from 'sonner';
 import { UploadCloudIcon } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
+import { useT } from '@/lib/useT';
 
 type FirmwareRelease = {
   _id: string;
@@ -26,8 +27,8 @@ type FirmwareRelease = {
 };
 
 export default function DeployUpdatesPage() {
-  const t = useTranslations('deployUpdates');
-  const tCommon = useTranslations('common');
+  const t = useT('deployUpdates');
+  const tCommon = useT('common');
   const locale = useLocale();
 
   const [releases, setReleases] = useState<FirmwareRelease[]>([]);

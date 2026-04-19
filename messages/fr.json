@@ -3,6 +3,13 @@
     "save": "Enregistrer",
     "discard": "Annuler",
     "loading": "Chargement...",
+    "language": "Langue",
+    "keepMeSignedInFor30Days": "Garder ma session active pendant 30 jours",
+    "localeNames": {
+      "fr": "Français",
+      "en": "Anglais",
+      "ar": "Arabe"
+    },
     "unsavedChanges": "Modifications non enregistrées",
     "allChangesSaved": "Toutes les modifications enregistrées"
   },  "app": {
@@ -17,12 +24,16 @@
     "gateway": "Passerelle",
     "profile": "Profil",
     "settings": "Paramètres",
+    "updates": "Mises à jour",
+    "support": "Support",
+    "collapse": "Réduire",
     "signOut": "Se déconnecter"
   },
   "userMenu": {
     "profile": "Profil",
     "settings": "Paramètres",
-    "signOut": "Se déconnecter"
+    "signOut": "Se déconnecter",
+    "anonymous": "Utilisateur"
   },
   "dashboard": {
     "title": "Tableau de bord",
@@ -484,6 +495,7 @@
         "emailPlaceholder": "operateur@exemple.com",
         "passwordLabel": "Mot de passe",
         "forgotPassword": "Mot de passe oublié ?",
+        "rememberMe": "Garder ma session active pendant 30 jours",
         "submit": "Se connecter",
         "signingIn": "Connexion en cours...",
         "noAccount": "Vous n'avez pas de compte ?",
@@ -527,5 +539,10 @@
         "description": "Entrez votre nouveau mot de passe"
       }
     }
+  }
+  ,"errors": {
+    "roleOperatorOnly": "Ce portail est réservé aux opérateurs.",
+    "roleAdminOnly": "Ce portail est réservé aux administrateurs.",
+    "sessionExpired": "Votre session a expiré. Reconnectez-vous."
   }
 }

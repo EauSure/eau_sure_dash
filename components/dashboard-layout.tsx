@@ -4,7 +4,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
-import { useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -12,6 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { UserDropdown } from '@/components/user-dropdown';
 import { useState } from 'react';
+import { useT } from '@/lib/useT';
 import { 
   LayoutDashboard, 
   AlertTriangle, 
@@ -35,6 +35,7 @@ type DashboardLayoutProps = {
   children: React.ReactNode;
   navigation?: NavigationItem[];
   sidebarStorageKey?: string;
+  headerActions?: React.ReactNode;
   userDropdownProps?: {
     profileHref?: string;
     settingsHref?: string;
@@ -52,11 +53,12 @@ export function DashboardLayout({
   children,
   navigation,
   sidebarStorageKey = 'sidebarCollapsed',
+  headerActions,
   userDropdownProps,
 }: DashboardLayoutProps) {
   const pathname = usePathname();
-  const t = useTranslations('navigation');
-  const tApp = useTranslations('app');
+  const t = useT('navigation');
+  const tApp = useT('app');
   const locale = getLocaleFromPath(pathname);
   const resolvedSignOutCallback = `/${locale}/auth/signin`;
   
@@ -77,13 +79,13 @@ export function DashboardLayout({
   };
 
   const defaultNavigation: NavigationItem[] = [
-    { name: 'Aperçu', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'Dispositifs', href: '/dashboard/devices', icon: Cpu },
-    { name: 'Alertes', href: '/dashboard/alerts', icon: AlertTriangle },
-    { name: 'Updates', href: '/dashboard/updates', icon: Wrench },
-    { name: 'Support technique et bugs', href: '/dashboard/support', icon: LifeBuoy },
-    { name: 'Profil', href: '/dashboard/profile', icon: User },
-    { name: 'Paramètres', href: '/dashboard/settings', icon: Settings },
+    { name: t('overview'), href: '/dashboard', icon: LayoutDashboard },
+    { name: t('devices'), href: '/dashboard/devices', icon: Cpu },
+    { name: t('alerts'), href: '/dashboard/alerts', icon: AlertTriangle },
+    { name: t('updates'), href: '/dashboard/updates', icon: Wrench },
+    { name: t('support'), href: '/dashboard/support', icon: LifeBuoy },
+    { name: t('profile'), href: '/dashboard/profile', icon: User },
+    { name: t('settings'), href: '/dashboard/settings', icon: Settings },
   ];
 
   const navigationItems = navigation ?? defaultNavigation;
@@ -116,8 +118,8 @@ export function DashboardLayout({
             onClick={toggleSidebar}
             className={cn("w-full transition-all duration-300", isCollapsed && "justify-center px-2")}
           >
-            {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4 mr-2" />}
-            {!isCollapsed && <span className="text-xs opacity-100 transition-opacity duration-200">Collapse</span>}
+            {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4 me-2" />}
+            {!isCollapsed && <span className="text-xs opacity-100 transition-opacity duration-200">{t('collapse')}</span>}
           </Button>
         </div>
 
@@ -144,7 +146,7 @@ export function DashboardLayout({
                     )}
                     title={isCollapsed ? item.name : undefined}
                   >
-                    <item.icon className={cn("h-4 w-4 transition-all duration-300", !isCollapsed && "mr-2")} />
+                    <item.icon className={cn("h-4 w-4 transition-all duration-300", !isCollapsed && "me-2")} />
                     {!isCollapsed && <span className="opacity-100 transition-opacity duration-200">{item.name}</span>}
                   </Button>
                 </Link>
@@ -164,7 +166,7 @@ export function DashboardLayout({
             onClick={() => void handleSignOut()}
             title={isCollapsed ? t('signOut') : undefined}
           >
-            <LogOut className={cn("h-4 w-4 transition-all duration-300", !isCollapsed && "mr-2")} />
+            <LogOut className={cn("h-4 w-4 transition-all duration-300", !isCollapsed && "me-2")} />
             {!isCollapsed && <span className="opacity-100 transition-opacity duration-200">{t('signOut')}</span>}
           </Button>
         </div>
@@ -194,6 +196,7 @@ export function DashboardLayout({
               </div>
             </div>
             <div className="flex items-center gap-4">
+              {headerActions}
               <ThemeToggle />
               <UserDropdown {...userDropdownProps} />
             </div>

@@ -1,6 +1,7 @@
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { MongoDBAdapter } from '@auth/mongodb-adapter';
+import { createHash } from 'crypto';
 import clientPromise from './mongodb';
 import { comparePassword } from './auth';
 import {
@@ -11,6 +12,22 @@ import {
 
 export const authOptions: NextAuthOptions = {
   adapter: MongoDBAdapter(clientPromise),
+  // NEXTAUTH_SECRET must be ≥64 chars. Rotate every 90 days.
+  // Rotating invalidates all existing sessions — warn users.
+  cookies: {
+    sessionToken: {
+      name:
+        process.env.NODE_ENV === 'production'
+          ? '__Host-eausure.session'
+          : 'eausure.session',
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production',
+        path: '/',
+      },
+    },
+  },
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -20,8 +37,9 @@ export const authOptions: NextAuthOptions = {
         role: { label: 'Role', type: 'text' },
         expectedRole: { label: 'Expected Role', type: 'text' },
         roleMismatchError: { label: 'Role Mismatch Error', type: 'text' },
+        rememberMe: { label: 'Remember Me', type: 'text' },
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
         if (!credentials?.email || !credentials?.password) {
           throw new Error('Please enter both email and password');
         }
@@ -68,11 +86,19 @@ export const authOptions: NextAuthOptions = {
           throw new Error('Your account does not have admin access');
         }
 
+        const userAgent = req?.headers?.['user-agent'] || '';
+        const fingerprint = createHash('sha256')
+          .update(Array.isArray(userAgent) ? userAgent.join(' ') : userAgent)
+          .digest('hex')
+          .slice(0, 16);
+
         return {
           id: user._id.toString(),
           email: user.email,
           name: user.name,
           role: actualRole,
+          rememberMe: credentials.rememberMe === 'true',
+          fingerprint,
         };
       },
     }),
@@ -89,6 +115,8 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.email = user.email;
         token.role = user.role;
+        token.rememberMe = user.rememberMe;
+        token.fingerprint = user.fingerprint;
 
         if (typeof user.email === 'string') {
           await updateUserPresenceByEmail(user.email, 'online');

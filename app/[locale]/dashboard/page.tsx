@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { useLocale, useTranslations } from 'next-intl';
+import { useLocale } from 'next-intl';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -26,6 +26,7 @@ import {
   History,
 } from 'lucide-react';
 import { useEauSureLive } from '@/hooks/use-eausure-live';
+import { useT } from '@/lib/useT';
 import type { EauSureSensorData, EauSureStatsResponse } from '@/types/eausure';
 
 function formatWhen(value: string, locale: string) {
@@ -50,7 +51,7 @@ function statusFromReading(reading: EauSureSensorData | null) {
 export default function DashboardPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
-  const t = useTranslations('dashboard');
+  const t = useT('dashboard');
   const locale = useLocale();
   const { latest, history, loading, error, source, refresh } = useEauSureLive();
   const [stats, setStats] = useState<EauSureStatsResponse | null>(null);
@@ -58,9 +59,9 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (status === 'unauthenticated') {
-      router.push('/fr/auth/signin');
+      router.push(`/${locale}/auth/signin`);
     }
-  }, [status, router]);
+  }, [locale, status, router]);
 
   useEffect(() => {
     const loadStats = async () => {

@@ -1,13 +1,13 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Users, Activity, Rocket, Stethoscope } from 'lucide-react';
+import { useT } from '@/lib/useT';
 
 export default function AdminDashboardPage() {
-  const t = useTranslations('admin');
+  const t = useT('admin');
 
   const adminModules = [
     {

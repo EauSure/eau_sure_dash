@@ -2,7 +2,7 @@
 
 import { Fragment, type ReactNode, useEffect, useMemo, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { useLocale, useTranslations } from 'next-intl';
+import { useLocale } from 'next-intl';
 import { AnimatePresence, motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -31,6 +31,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useT } from '@/lib/useT';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -138,8 +139,8 @@ function PresenceDot({
 
 export default function ManageUsersPage() {
   const { data: session } = useSession();
-  const t = useTranslations('manageUsers');
-  const tPresence = useTranslations('presence');
+  const t = useT('manageUsers');
+  const tPresence = useT('presence');
   const locale = useLocale();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
