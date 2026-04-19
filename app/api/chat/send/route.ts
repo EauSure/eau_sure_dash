@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb';
 import { getToken } from 'next-auth/jwt';
 import { NextRequest, NextResponse } from 'next/server';
-import Filter from 'bad-words';
+import { Filter } from 'bad-words';
 import { serializeChat } from '@/lib/chat';
 import { getClient } from '@/lib/mongodb';
 import { getUserByEmail } from '@/lib/user';

@@ -8,7 +8,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import Filter from 'bad-words';
+import { Filter } from 'bad-words';
 import { toast } from 'sonner';
 import {
   ArrowLeft as ArrowLeftIcon,
