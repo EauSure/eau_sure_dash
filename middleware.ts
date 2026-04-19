@@ -5,15 +5,21 @@ import { isSameOriginRequest } from '@/lib/csrf';
 const locales = ['en', 'fr', 'ar'] as const;
 const defaultLocale = 'fr';
 const adminDefaultLocale = 'en';
-const apiAuthExclusions = ['/api/tickets', '/api/admin/nodes', '/api/admin/firmware', '/api/firmware'] as const;
-const authPages = [
-  '/admin/signin',
+const PUBLIC_PATHS = [
   '/signin',
   '/signup',
   '/forgot-password',
   '/reset-password',
-  '/forget-password',
-];
+  '/admin/signin',
+  '/api/auth',
+  '/api/signup',
+  '/api/forgot-password',
+  '/api/reset-password',
+  '/api/locale',
+  '/_next',
+  '/favicon.ico',
+  '/public',
+] as const;
 
 function getLocaleFromPath(pathname: string): string | null {
   const firstSegment = pathname.split('/')[1];
@@ -24,10 +30,6 @@ function getLocaleFromPath(pathname: string): string | null {
 
 function isValidLocale(locale: string | null | undefined): locale is typeof locales[number] {
   return locales.includes(locale);
-}
-
-function isAuthPage(pathname: string): boolean {
-  return authPages.some((page) => pathname.includes(page));
 }
 
 function stripLocalePrefix(pathname: string): string {
@@ -45,6 +47,18 @@ function isAdminAreaPath(pathname: string): boolean {
   return localizedPath === '/admin' || localizedPath.startsWith('/admin/');
 }
 
+function isPublicPath(pathname: string): boolean {
+  const withoutLocale = pathname.replace(/^\/(fr|en|ar)(?=\/|$)/, '') || '/';
+
+  return PUBLIC_PATHS.some((publicPath) => {
+    return (
+      withoutLocale === publicPath ||
+      withoutLocale.startsWith(`${publicPath}/`) ||
+      pathname.startsWith(publicPath)
+    );
+  });
+}
+
 async function fingerprintFromUserAgent(userAgent: string): Promise<string> {
   const encoded = new TextEncoder().encode(userAgent);
   const digest = await crypto.subtle.digest('SHA-256', encoded);
@@ -57,13 +71,19 @@ async function fingerprintFromUserAgent(userAgent: string): Promise<string> {
 export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Temporary diagnostic logging for redirect-loop triage.
+  // Remove once localhost redirect behavior is stable.
+  const debugToken = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
+  console.log('[middleware]', request.method, pathname, 'token:', !!debugToken, 'role:', debugToken?.role);
+
+  // Step 1: Always bypass public paths before any redirect logic.
+  if (isPublicPath(pathname)) {
+    return NextResponse.next();
+  }
+
   if (pathname.startsWith('/api/')) {
     if (request.method === 'POST' && !isSameOriginRequest(request)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
-
-    if (apiAuthExclusions.some((route) => pathname.startsWith(route))) {
-      return NextResponse.next();
     }
 
     return NextResponse.next();
@@ -86,27 +106,43 @@ export default async function middleware(request: NextRequest) {
     locale = adminPath ? adminDefaultLocale : defaultLocale;
   }
 
-  if (isAuthPage(pathname)) {
-    const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
-    const operatorSignInPaths = [
-      `/${locale}/auth/signin`,
-      `/${locale}/signin`,
-      '/auth/signin',
-      '/signin',
-    ];
+  const token = debugToken;
 
-    if (token?.role === 'admin' && operatorSignInPaths.includes(pathname)) {
-      return NextResponse.redirect(new URL(`/${locale}/admin`, request.url));
+  // Step 4: Not authenticated -> route to the appropriate sign-in page.
+  if (!token) {
+    const localizedPath = stripLocalePrefix(pathname);
+    if (localizedPath.endsWith('/signin')) {
+      return NextResponse.next();
     }
 
-    const currentFingerprint = await fingerprintFromUserAgent(request.headers.get('user-agent') || '');
-    if (token?.fingerprint && token.fingerprint !== currentFingerprint) {
-      const response = NextResponse.redirect(new URL(`/${locale}/auth/signin`, request.url));
-      response.cookies.delete(process.env.NODE_ENV === 'production' ? '__Host-eausure.session' : 'eausure.session');
-      return response;
-    }
+    const isAdminPath = isAdminAreaPath(pathname);
+    const signInPath = isAdminPath ? `/${locale}/admin/signin` : `/${locale}/auth/signin`;
+    const signInUrl = new URL(signInPath, request.url);
+    signInUrl.searchParams.set('callbackUrl', request.url);
+    return NextResponse.redirect(signInUrl);
+  }
 
-    return NextResponse.next();
+  // Fingerprint mismatch invalidates the request and forces fresh auth.
+  const currentFingerprint = await fingerprintFromUserAgent(request.headers.get('user-agent') || '');
+  if (token.fingerprint && token.fingerprint !== currentFingerprint) {
+    return NextResponse.redirect(new URL(`/${locale}/auth/signin`, request.url));
+  }
+
+  const localizedPath = stripLocalePrefix(pathname);
+  const isAuthPath =
+    localizedPath === '/signin' ||
+    localizedPath === '/signup' ||
+    localizedPath === '/admin/signin' ||
+    localizedPath === '/forgot-password' ||
+    localizedPath === '/reset-password' ||
+    localizedPath === '/forget-password';
+
+  if (isAuthPath) {
+    const dest = token.role === 'admin' ? `/${locale}/admin` : `/${locale}/dashboard`;
+    if (pathname === dest) {
+      return NextResponse.next();
+    }
+    return NextResponse.redirect(new URL(dest, request.url));
   }
 
   const isDashboardRoute = pathname.startsWith(`/${locale}/dashboard`) || pathname.startsWith('/dashboard');
@@ -117,28 +153,12 @@ export default async function middleware(request: NextRequest) {
     pathname.startsWith('/dashboard/admin');
 
   if (isDashboardRoute || isAdminRoute) {
-    const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
-
-    if (!token) {
-      const signInUrl = new URL(`/${locale}/auth/signin`, request.url);
-      signInUrl.searchParams.set('callbackUrl', request.url);
-      return NextResponse.redirect(signInUrl);
-    }
-
     if (isDashboardRoute && token.role === 'admin') {
       return NextResponse.redirect(new URL(`/${locale}/admin`, request.url));
     }
 
     if (isAdminRoute && token.role !== 'admin') {
       return NextResponse.redirect(new URL(`/${locale}/dashboard`, request.url));
-    }
-
-    const currentFingerprint = await fingerprintFromUserAgent(request.headers.get('user-agent') || '');
-    if (token.fingerprint && token.fingerprint !== currentFingerprint) {
-      const signInUrl = new URL(`/${locale}/auth/signin`, request.url);
-      const response = NextResponse.redirect(signInUrl);
-      response.cookies.delete(process.env.NODE_ENV === 'production' ? '__Host-eausure.session' : 'eausure.session');
-      return response;
     }
   }
 
