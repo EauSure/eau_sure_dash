@@ -119,6 +119,7 @@ export default function DiagnoseProblemsPage() {
   const locale = useLocale();
   const t = useT('support');
   const tAdmin = useT('admin.diagnoseProblems');
+  const genericErrorMessage = t('error');
 
   const [tickets, setTickets] = useState<TicketResponse[]>([]);
   const [meta, setMeta] = useState<TicketListMeta>({
@@ -156,6 +157,8 @@ export default function DiagnoseProblemsPage() {
   const [chatNow, setChatNow] = useState(Date.now());
   const chatBottomRef = useRef<HTMLDivElement | null>(null);
   const typingPingRef = useRef<number | null>(null);
+  const ticketsPollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const waitingPollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const categoryOptions = useMemo(
     () => ticketCategories.map((category) => ({ value: category, label: t(`categories.${category}`) })),
@@ -210,7 +213,7 @@ export default function DiagnoseProblemsPage() {
 
       if (!response.ok) {
         const payload = await response.json().catch(() => ({}));
-        throw new Error(typeof payload?.error === 'string' ? payload.error : t('error'));
+        throw new Error(typeof payload?.error === 'string' ? payload.error : genericErrorMessage);
       }
 
       const payload = (await response.json()) as TicketListResponse;
@@ -227,18 +230,12 @@ export default function DiagnoseProblemsPage() {
         }
       );
     } catch (error) {
-      const message = error instanceof Error ? error.message : t('error');
+      const message = error instanceof Error ? error.message : genericErrorMessage;
       toast.error(message);
     } finally {
       setLoading(false);
     }
-  }, [categoryFilter, locale, page, priorityFilter, router, searchTerm, statusFilter, t]);
-
-  useEffect(() => {
-    if (sessionStatus === 'authenticated') {
-      void fetchTickets();
-    }
-  }, [fetchTickets, sessionStatus]);
+  }, [categoryFilter, genericErrorMessage, locale, page, priorityFilter, router, searchTerm, statusFilter]);
 
   const fetchWaitingQueue = useCallback(
     async (silent = false) => {
@@ -259,13 +256,13 @@ export default function DiagnoseProblemsPage() {
 
         if (!response.ok) {
           const payload = await response.json().catch(() => ({}));
-          throw new Error(typeof payload?.error === 'string' ? payload.error : t('error'));
+          throw new Error(typeof payload?.error === 'string' ? payload.error : genericErrorMessage);
         }
 
         const payload = (await response.json()) as WaitingQueueResponse;
         setWaitingUsers(payload.waitingUsers || []);
       } catch (error) {
-        const message = error instanceof Error ? error.message : t('error');
+        const message = error instanceof Error ? error.message : genericErrorMessage;
         toast.error(message);
       } finally {
         if (!silent) {
@@ -273,7 +270,7 @@ export default function DiagnoseProblemsPage() {
         }
       }
     },
-    [locale, router, t]
+    [genericErrorMessage, locale, router]
   );
 
   const fetchActiveChat = useCallback(
@@ -296,7 +293,7 @@ export default function DiagnoseProblemsPage() {
 
         if (!response.ok) {
           const payload = await response.json().catch(() => ({}));
-          throw new Error(typeof payload?.error === 'string' ? payload.error : t('error'));
+          throw new Error(typeof payload?.error === 'string' ? payload.error : genericErrorMessage);
         }
 
         const payload = (await response.json()) as LiveChatResponse;
@@ -307,7 +304,7 @@ export default function DiagnoseProblemsPage() {
           setSelectedChatUserId(payload.user.userId);
         }
       } catch (error) {
-        const message = error instanceof Error ? error.message : t('error');
+        const message = error instanceof Error ? error.message : genericErrorMessage;
         toast.error(message);
       } finally {
         if (!silent) {
@@ -315,30 +312,71 @@ export default function DiagnoseProblemsPage() {
         }
       }
     },
-    [locale, router, t]
+    [genericErrorMessage, locale, router]
   );
 
   useEffect(() => {
     if (sessionStatus !== 'authenticated') {
+      if (ticketsPollingRef.current) {
+        window.clearInterval(ticketsPollingRef.current);
+        ticketsPollingRef.current = null;
+      }
       return;
     }
 
     void fetchTickets();
+
+    if (ticketsPollingRef.current) {
+      window.clearInterval(ticketsPollingRef.current);
+    }
+
+    ticketsPollingRef.current = window.setInterval(() => {
+      void fetchTickets();
+    }, 15000);
+
+    return () => {
+      if (ticketsPollingRef.current) {
+        window.clearInterval(ticketsPollingRef.current);
+        ticketsPollingRef.current = null;
+      }
+    };
   }, [fetchTickets, sessionStatus]);
+
+  useEffect(() => {
+    if (sessionStatus !== 'authenticated') {
+      if (waitingPollingRef.current) {
+        window.clearInterval(waitingPollingRef.current);
+        waitingPollingRef.current = null;
+      }
+      return;
+    }
+
+    void fetchWaitingQueue();
+
+    if (waitingPollingRef.current) {
+      window.clearInterval(waitingPollingRef.current);
+    }
+
+    waitingPollingRef.current = window.setInterval(() => {
+      void fetchWaitingQueue(true);
+    }, 5000);
+
+    return () => {
+      if (waitingPollingRef.current) {
+        window.clearInterval(waitingPollingRef.current);
+        waitingPollingRef.current = null;
+      }
+    };
+  }, [fetchWaitingQueue, sessionStatus]);
 
   useEffect(() => {
     if (sessionStatus !== 'authenticated') {
       return;
     }
 
-    void fetchWaitingQueue();
     if (selectedChatUserId) {
       void fetchActiveChat(selectedChatUserId);
     }
-
-    const queueIntervalId = window.setInterval(() => {
-      void fetchWaitingQueue(true);
-    }, 5000);
 
     const activeIntervalId = window.setInterval(() => {
       if (selectedChatUserId) {
@@ -351,11 +389,10 @@ export default function DiagnoseProblemsPage() {
     }, 1000);
 
     return () => {
-      window.clearInterval(queueIntervalId);
       window.clearInterval(activeIntervalId);
       window.clearInterval(clockIntervalId);
     };
-  }, [fetchActiveChat, fetchWaitingQueue, selectedChatUserId, sessionStatus]);
+  }, [fetchActiveChat, selectedChatUserId, sessionStatus]);
 
   useEffect(() => {
     if (!selectedChatUserId || sessionStatus !== 'authenticated') {

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { signIn } from 'next-auth/react';
 import { useParams, useRouter } from 'next/navigation';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { LoginLanguageSelector } from '@/components/login-language-selector';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -68,8 +69,9 @@ export default function AdminSignInPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="absolute top-4 end-4">
+    <div className="relative min-h-screen flex items-center justify-center p-4">
+      <LoginLanguageSelector />
+      <div className="absolute top-4 start-4">
         <ThemeToggle />
       </div>
 

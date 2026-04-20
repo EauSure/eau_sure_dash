@@ -75,10 +75,7 @@ export const authOptions: NextAuthOptions = {
               : null;
 
         if (expectedRole && actualRole !== expectedRole) {
-          // Use an opaque code for UI-level role guidance without exposing user existence in APIs.
-          if (credentials.roleMismatchError === '1') {
-            throw new Error('ROLE_MISMATCH');
-          }
+          // Never expose role mismatch details for failed auth attempts.
           return null;
         }
 

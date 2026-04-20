@@ -4,7 +4,7 @@ import { isSameOriginRequest } from '@/lib/csrf';
 
 const locales = ['en', 'fr', 'ar'] as const;
 const defaultLocale = 'fr';
-const adminDefaultLocale = 'en';
+const adminDefaultLocale = 'fr';
 const PUBLIC_PATHS = [
   '/signin',
   '/signup',

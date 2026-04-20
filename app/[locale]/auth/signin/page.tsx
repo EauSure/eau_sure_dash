@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { LoginLanguageSelector } from '@/components/login-language-selector';
 import { PasswordInput } from '@/components/ui/password-input';
 import { useT } from '@/lib/useT';
 
@@ -19,6 +20,8 @@ type SignInFormValues = {
   password: string;
   rememberMe: boolean;
 };
+
+const GENERIC_AUTH_ERROR = 'Email or password is incorrect.';
 
 export default function SignInPage() {
   const router = useRouter();
@@ -52,29 +55,25 @@ export default function SignInPage() {
         password: values.password,
         rememberMe: String(values.rememberMe),
         expectedRole: 'operator',
-        roleMismatchError: '1',
       });
 
       if (result?.error) {
-        if (result.error === 'ROLE_MISMATCH') {
-          setError(t('errors.adminMustUseAdminPortal'));
-        } else {
-          setError(t('errors.invalidCredentials'));
-        }
+        setError(GENERIC_AUTH_ERROR);
       } else {
         router.push(`/${locale}/dashboard`);
         router.refresh();
       }
     } catch {
-      setError(t('errors.unexpected'));
+      setError(GENERIC_AUTH_ERROR);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="absolute top-4 end-4">
+    <div className="relative min-h-screen flex items-center justify-center p-4">
+      <LoginLanguageSelector />
+      <div className="absolute top-4 start-4">
         <ThemeToggle />
       </div>
       <Card className="w-full max-w-md">
