@@ -8,7 +8,6 @@ import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { LoginLanguageSelector } from '@/components/login-language-selector';
@@ -20,8 +19,6 @@ type SignInFormValues = {
   password: string;
   rememberMe: boolean;
 };
-
-const GENERIC_AUTH_ERROR = 'Email or password is incorrect.';
 
 export default function SignInPage() {
   const router = useRouter();
@@ -58,13 +55,13 @@ export default function SignInPage() {
       });
 
       if (result?.error) {
-        setError(GENERIC_AUTH_ERROR);
+        setError(t('errors.invalidCredentials'));
       } else {
         router.push(`/${locale}/dashboard`);
         router.refresh();
       }
     } catch {
-      setError(GENERIC_AUTH_ERROR);
+      setError(t('errors.invalidCredentials'));
     } finally {
       setIsLoading(false);
     }
@@ -76,86 +73,84 @@ export default function SignInPage() {
       <div className="absolute top-4 start-4">
         <ThemeToggle />
       </div>
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <Badge variant="secondary" className="mb-2 w-fit">
-            {t('operatorBadge')}
-          </Badge>
-          <CardTitle className="text-2xl font-bold">{t('title')}</CardTitle>
-          <CardDescription>
-            {t('description')}
-          </CardDescription>
-        </CardHeader>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <CardContent className="space-y-4">
-            {error && (
-              <div className="rounded-md bg-destructive/10 p-3 border border-destructive/20">
-                <p className="text-sm text-destructive">{error}</p>
+      <div className="w-full max-w-md space-y-4">
+        <Card className="w-full border-border/60 shadow-none">
+          <CardHeader className="space-y-2 px-8 pt-8 pb-3">
+            <CardTitle className="text-3xl font-bold tracking-tight">{t('title')}</CardTitle>
+            <CardDescription className="text-sm text-muted-foreground">{t('description')}</CardDescription>
+          </CardHeader>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <CardContent className="space-y-4 px-8 py-4">
+              {error && (
+                <div className="rounded-md border border-destructive/20 bg-destructive/10 p-3">
+                  <p className="text-sm text-destructive">{error}</p>
+                </div>
+              )}
+              <div className="space-y-2">
+                <Label htmlFor="email">{t('emailLabel')}</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder={t('emailPlaceholder')}
+                  autoComplete="email"
+                  required
+                  {...register('email', { required: true })}
+                />
               </div>
-            )}
-            <div className="space-y-2">
-              <Label htmlFor="email">{t('emailLabel')}</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder={t('emailPlaceholder')}
-                autoComplete="email"
-                required
-                {...register('email', { required: true })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">{t('passwordLabel')}</Label>
-              <PasswordInput
-                id="password"
-                placeholder="••••••••"
-                autoComplete="current-password"
-                required
-                {...register('password', { required: true })}
-              />
-              <div className="text-end">
+              <div className="space-y-2">
+                <Label htmlFor="password">{t('passwordLabel')}</Label>
+                <PasswordInput
+                  id="password"
+                  placeholder="••••••••"
+                  autoComplete="current-password"
+                  required
+                  {...register('password', { required: true })}
+                />
+                <div className="text-end">
+                  <Link
+                    href={`/${locale}/auth/forgot-password`}
+                    className="text-[13px] text-muted-foreground hover:text-foreground hover:underline"
+                  >
+                    {t('forgotPassword')}
+                  </Link>
+                </div>
+              </div>
+              <label className="flex items-start gap-3 rounded-md border border-border/60 bg-muted/20 p-3">
+                <input
+                  type="checkbox"
+                  className="mt-1 h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                  {...register('rememberMe')}
+                />
+                <span className="text-sm text-foreground">{t('rememberMe')}</span>
+              </label>
+            </CardContent>
+            <CardFooter className="flex flex-col gap-4 px-8 pt-2 pb-8">
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? t('signingIn') : t('submit')}
+              </Button>
+              <p className="text-[13px] text-muted-foreground text-center">
+                {t('noAccount')}{' '}
                 <Link
-                  href={`/${locale}/auth/forgot-password`}
-                  className="text-sm font-medium text-primary hover:underline"
+                  href={`/${locale}/auth/signup`}
+                  className="font-medium text-foreground hover:underline"
                 >
-                  {t('forgotPassword')}
+                  {t('signUp')}
                 </Link>
-              </div>
-            </div>
-            <label className="flex items-start gap-3 rounded-md border border-border bg-muted/30 p-3">
-              <input
-                type="checkbox"
-                className="mt-1 h-4 w-4 rounded border-border text-primary focus:ring-primary"
-                {...register('rememberMe')}
-              />
-              <span className="text-sm text-foreground">{t('rememberMe')}</span>
-            </label>
-          </CardContent>
-          <CardFooter className="flex flex-col space-y-4 pt-4">
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? t('signingIn') : t('submit')}
-            </Button>
-            <p className="text-xs text-muted-foreground text-center leading-relaxed">
-              {t('adminPrompt')}{' '}
-              <Link
-                href={`/${locale}/admin/signin`}
-                className="font-medium text-primary hover:underline"
-              >
-                {t('adminPortalLink')}
-              </Link>
-            </p>
-            <p className="text-sm text-muted-foreground text-center">
-              {t('noAccount')}{' '}
-              <Link
-                href={`/${locale}/auth/signup`}
-                className="font-medium text-primary hover:underline"
-              >
-                {t('signUp')}
-              </Link>
-            </p>
-          </CardFooter>
-        </form>
-      </Card>
+              </p>
+            </CardFooter>
+          </form>
+        </Card>
+
+        <p className="text-[13px] text-muted-foreground text-center">
+          {t('adminPrompt')}{' '}
+          <Link
+            href={`/${locale}/admin/signin`}
+            className="font-medium text-foreground hover:underline"
+          >
+            {t('adminPortalLink')}
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }

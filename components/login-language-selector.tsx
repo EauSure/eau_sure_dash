@@ -4,9 +4,9 @@ import { useLocale } from 'next-intl';
 import { usePathname, useRouter } from 'next/navigation';
 
 const LOCALES = [
-  { code: 'fr', label: 'FR' },
-  { code: 'en', label: 'EN' },
-  { code: 'ar', label: 'AR' },
+  { code: 'fr', label: 'Français' },
+  { code: 'en', label: 'English' },
+  { code: 'ar', label: 'العربية' },
 ];
 
 export function LoginLanguageSelector() {
@@ -36,34 +36,31 @@ export function LoginLanguageSelector() {
         position: 'absolute',
         top: '1.5rem',
         insetInlineEnd: '1.5rem',
-        display: 'flex',
-        gap: '6px',
       }}
     >
-      {LOCALES.map((l) => (
-        <button
-          key={l.code}
-          onClick={() => switchLocale(l.code)}
-          style={{
-            padding: '4px 10px',
-            fontSize: '12px',
-            borderRadius: 'var(--border-radius-md)',
-            border: '0.5px solid var(--color-border-secondary)',
-            background:
-              currentLocale === l.code
-                ? 'var(--color-background-info)'
-                : 'var(--color-background-secondary)',
-            color:
-              currentLocale === l.code
-                ? 'var(--color-text-info)'
-                : 'var(--color-text-secondary)',
-            cursor: 'pointer',
-            fontWeight: currentLocale === l.code ? 500 : 400,
-          }}
-        >
-          {l.label}
-        </button>
-      ))}
+      <select
+        value={currentLocale}
+        onChange={(event) => {
+          void switchLocale(event.target.value);
+        }}
+        aria-label="Select language"
+        style={{
+          fontSize: '12px',
+          color: 'var(--color-text-secondary)',
+          background: 'transparent',
+          border: 'none',
+          paddingInline: '0.25rem',
+          paddingBlock: '0.125rem',
+          outline: 'none',
+          cursor: 'pointer',
+        }}
+      >
+        {LOCALES.map((locale) => (
+          <option key={locale.code} value={locale.code}>
+            {locale.label}
+          </option>
+        ))}
+      </select>
     </div>
   );
 }

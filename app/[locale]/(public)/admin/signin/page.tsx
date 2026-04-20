@@ -6,7 +6,6 @@ import { signIn } from 'next-auth/react';
 import { useParams, useRouter } from 'next/navigation';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { LoginLanguageSelector } from '@/components/login-language-selector';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -39,15 +38,10 @@ export default function AdminSignInPage() {
         email,
         password,
         expectedRole: 'admin',
-        roleMismatchError: '1',
       });
 
       if (result?.error) {
-        if (result.error === 'ROLE_MISMATCH') {
-          setError(t('errors.operatorOnlyPortal'));
-        } else {
-          setError(t('errors.invalidCredentials'));
-        }
+        setError(t('errors.invalidCredentials'));
         setIsLoading(false);
         return;
       }
@@ -75,76 +69,70 @@ export default function AdminSignInPage() {
         <ThemeToggle />
       </div>
 
-      <Card className="w-full max-w-md border-indigo-500/30 shadow-xl shadow-indigo-500/10">
-        <CardHeader className="space-y-1">
-          <Badge className="mb-2 w-fit bg-indigo-600 text-white hover:bg-indigo-600">
-            {t('badge')}
-          </Badge>
-          <CardTitle className="text-2xl font-bold text-indigo-700 dark:text-indigo-300">
-            {t('title')}
-          </CardTitle>
-          <CardDescription>{t('description')}</CardDescription>
-        </CardHeader>
+      <div className="w-full max-w-md space-y-4">
+        <Card className="w-full border-border/60 shadow-none">
+          <CardHeader className="space-y-2 px-8 pt-8 pb-3">
+            <CardTitle className="text-3xl font-bold tracking-tight">{t('title')}</CardTitle>
+            <CardDescription className="text-sm text-muted-foreground">{t('description')}</CardDescription>
+          </CardHeader>
 
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
-            {error && (
-              <div className="rounded-md bg-destructive/10 p-3 border border-destructive/20">
-                <p className="text-sm text-destructive">{error}</p>
+          <form onSubmit={handleSubmit}>
+            <CardContent className="space-y-4 px-8 py-4">
+              {error && (
+                <div className="rounded-md border border-destructive/20 bg-destructive/10 p-3">
+                  <p className="text-sm text-destructive">{error}</p>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="admin-email">{t('emailLabel')}</Label>
+                <Input
+                  id="admin-email"
+                  type="email"
+                  placeholder={t('emailPlaceholder')}
+                  autoComplete="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
               </div>
-            )}
 
-            <div className="space-y-2">
-              <Label htmlFor="admin-email">{t('emailLabel')}</Label>
-              <Input
-                id="admin-email"
-                type="email"
-                placeholder={t('emailPlaceholder')}
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="admin-password">{t('passwordLabel')}</Label>
-              <PasswordInput
-                id="admin-password"
-                placeholder="••••••••"
-                autoComplete="current-password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-              <div className="text-end">
-                <Link
-                  href={`/${locale}/auth/forgot-password`}
-                  className="text-sm font-medium text-indigo-700 hover:underline dark:text-indigo-300"
-                >
-                  {t('forgotPassword')}
-                </Link>
+              <div className="space-y-2">
+                <Label htmlFor="admin-password">{t('passwordLabel')}</Label>
+                <PasswordInput
+                  id="admin-password"
+                  placeholder="••••••••"
+                  autoComplete="current-password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <div className="text-end">
+                  <Link
+                    href={`/${locale}/auth/forgot-password`}
+                    className="text-[13px] text-muted-foreground hover:text-foreground hover:underline"
+                  >
+                    {t('forgotPassword')}
+                  </Link>
+                </div>
               </div>
-            </div>
-          </CardContent>
+            </CardContent>
 
-          <CardFooter className="flex flex-col space-y-4 pt-4">
-            <Button
-              type="submit"
-              className="w-full bg-indigo-600 text-white hover:bg-indigo-500"
-              disabled={isLoading}
-            >
-              {isLoading ? t('signingIn') : t('submit')}
-            </Button>
-            <p className="text-xs text-muted-foreground text-center leading-relaxed">
-              {t('operatorPrompt')}{' '}
-              <Link href={`/${locale}/auth/signin`} className="font-medium text-primary hover:underline">
-                {t('operatorLink')}
-              </Link>
-            </p>
-          </CardFooter>
-        </form>
-      </Card>
+            <CardFooter className="flex flex-col gap-4 px-8 pt-2 pb-8">
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? t('signingIn') : t('submit')}
+              </Button>
+            </CardFooter>
+          </form>
+        </Card>
+
+        <p className="text-[13px] text-muted-foreground text-center">
+          {t('operatorPrompt')}{' '}
+          <Link href={`/${locale}/auth/signin`} className="font-medium text-foreground hover:underline">
+            {t('operatorLink')}
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }
