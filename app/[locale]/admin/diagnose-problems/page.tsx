@@ -157,8 +157,8 @@ export default function DiagnoseProblemsPage() {
   const [chatNow, setChatNow] = useState(Date.now());
   const chatBottomRef = useRef<HTMLDivElement | null>(null);
   const typingPingRef = useRef<number | null>(null);
-  const ticketsPollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const waitingPollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const ticketsPollingRef = useRef<number | null>(null);
+  const waitingPollingRef = useRef<number | null>(null);
 
   const categoryOptions = useMemo(
     () => ticketCategories.map((category) => ({ value: category, label: t(`categories.${category}`) })),
