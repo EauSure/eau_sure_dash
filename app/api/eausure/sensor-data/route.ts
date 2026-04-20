@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getEauSureSensorData } from '@/lib/eausure-server';
+import { getRequestAuthContext } from '@/lib/server-auth';
 
 export async function GET(request: NextRequest) {
+  const auth = await getRequestAuthContext(request);
+  if (!auth) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     const params = new URLSearchParams(request.nextUrl.searchParams);
     const data = await getEauSureSensorData(params);

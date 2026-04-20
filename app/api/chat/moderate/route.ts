@@ -1,14 +1,14 @@
 import { ObjectId } from 'mongodb';
-import { getToken } from 'next-auth/jwt';
 import { NextRequest, NextResponse } from 'next/server';
 import { serializeChat } from '@/lib/chat';
 import { getClient } from '@/lib/mongodb';
 import type { Chat } from '@/lib/models/Chat';
 import { chatModerateSchema } from '@/lib/models/Chat';
+import { requireAdminContext } from '@/lib/server-auth';
 
 export async function POST(req: NextRequest) {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-  if (!token || token.role !== 'admin') {
+  const auth = await requireAdminContext(req);
+  if (!auth) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
@@ -32,7 +32,10 @@ export async function POST(req: NextRequest) {
 
     const userObjectId = new ObjectId(validation.data.userId);
     const now = new Date();
-    const moderatorName = typeof token?.name === 'string' && token.name.trim() ? token.name : 'Support Agent';
+    const moderatorName =
+      typeof auth.token.name === 'string' && auth.token.name.trim()
+        ? auth.token.name
+        : 'Support Agent';
     const client = await getClient();
     const db = client.db(process.env.MONGODB_DB || 'water_quality');
     const chats = db.collection<Chat>('chats');

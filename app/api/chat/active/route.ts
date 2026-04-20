@@ -1,8 +1,8 @@
 import { ObjectId } from 'mongodb';
-import { getToken } from 'next-auth/jwt';
 import { NextRequest, NextResponse } from 'next/server';
 import { serializeChat } from '@/lib/chat';
 import { getClient } from '@/lib/mongodb';
+import { requireAdminContext } from '@/lib/server-auth';
 import type { Chat } from '@/lib/models/Chat';
 import type { User } from '@/lib/user';
 
@@ -11,8 +11,8 @@ function buildAddress(user: User | null) {
 }
 
 export async function GET(req: NextRequest) {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-  if (!token || token.role !== 'admin') {
+  const auth = await requireAdminContext(req);
+  if (!auth) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 

@@ -81,11 +81,11 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   }, [adminSessionActive, locale]);
 
   const navigation = [
-    { name: t('title'), href: '/admin', icon: Shield },
-    { name: t('manageUsers.title'), href: '/admin/manage-users', icon: Users },
-    { name: t('superviseSystem.title'), href: '/admin/supervise-system', icon: Activity },
-    { name: t('deployUpdates.title'), href: '/admin/deploy-updates', icon: Rocket },
-    { name: t('diagnoseProblems.title'), href: '/admin/diagnose-problems', icon: Stethoscope },
+    { name: t('title'), href: `/${locale}/admin`, icon: Shield },
+    { name: t('manageUsers.title'), href: `/${locale}/admin/manage-users`, icon: Users },
+    { name: t('superviseSystem.title'), href: `/${locale}/admin/supervise-system`, icon: Activity },
+    { name: t('deployUpdates.title'), href: `/${locale}/admin/deploy-updates`, icon: Rocket },
+    { name: t('diagnoseProblems.title'), href: `/${locale}/admin/diagnose-problems`, icon: Stethoscope },
   ];
 
   return (
@@ -94,8 +94,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       sidebarStorageKey="adminSidebarCollapsed"
       headerActions={<AdminLanguageSelector />}
       userDropdownProps={{
-        profileHref: '/admin',
-        settingsHref: '/admin',
+        profileHref: `/${locale}/admin`,
+        settingsHref: `/${locale}/admin`,
         showProfileSettings: false,
         signOutCallbackUrl: `/${locale}/admin/signin`,
       }}

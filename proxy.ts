@@ -6,10 +6,11 @@ const locales = ['en', 'fr', 'ar'] as const;
 const defaultLocale = 'fr';
 const adminDefaultLocale = 'fr';
 const PUBLIC_PATHS = [
-  '/signin',
-  '/signup',
-  '/forgot-password',
-  '/reset-password',
+  '/auth/signin',
+  '/auth/signup',
+  '/auth/forgot-password',
+  '/auth/forget-password',
+  '/auth/reset-password',
   '/admin/signin',
   '/api/auth',
   '/api/signup',
@@ -47,6 +48,10 @@ function isAdminAreaPath(pathname: string): boolean {
   return localizedPath === '/admin' || localizedPath.startsWith('/admin/');
 }
 
+function hasRoutePrefix(pathname: string, prefix: string): boolean {
+  return pathname === prefix || pathname.startsWith(`${prefix}/`);
+}
+
 function isPublicPath(pathname: string): boolean {
   const withoutLocale = pathname.replace(/^\/(fr|en|ar)(?=\/|$)/, '') || '/';
 
@@ -70,11 +75,7 @@ async function fingerprintFromUserAgent(userAgent: string): Promise<string> {
 
 export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-
-  // Temporary diagnostic logging for redirect-loop triage.
-  // Remove once localhost redirect behavior is stable.
   const debugToken = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
-  console.log('[middleware]', request.method, pathname, 'token:', !!debugToken, 'role:', debugToken?.role);
 
   // Step 1: Always bypass public paths before any redirect logic.
   if (isPublicPath(pathname)) {
@@ -130,12 +131,12 @@ export default async function middleware(request: NextRequest) {
 
   const localizedPath = stripLocalePrefix(pathname);
   const isAuthPath =
-    localizedPath === '/signin' ||
-    localizedPath === '/signup' ||
+    localizedPath === '/auth/signin' ||
+    localizedPath === '/auth/signup' ||
     localizedPath === '/admin/signin' ||
-    localizedPath === '/forgot-password' ||
-    localizedPath === '/reset-password' ||
-    localizedPath === '/forget-password';
+    localizedPath === '/auth/forgot-password' ||
+    localizedPath === '/auth/reset-password' ||
+    localizedPath === '/auth/forget-password';
 
   if (isAuthPath) {
     const dest = token.role === 'admin' ? `/${locale}/admin` : `/${locale}/dashboard`;
@@ -145,12 +146,12 @@ export default async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(dest, request.url));
   }
 
-  const isDashboardRoute = pathname.startsWith(`/${locale}/dashboard`) || pathname.startsWith('/dashboard');
+  const isDashboardRoute =
+    hasRoutePrefix(pathname, `/${locale}/dashboard`) ||
+    hasRoutePrefix(pathname, '/dashboard');
   const isAdminRoute =
-    pathname.startsWith(`/${locale}/admin`) ||
-    pathname.startsWith('/admin') ||
-    pathname.startsWith(`/${locale}/dashboard/admin`) ||
-    pathname.startsWith('/dashboard/admin');
+    hasRoutePrefix(pathname, `/${locale}/admin`) ||
+    hasRoutePrefix(pathname, '/admin');
 
   if (isDashboardRoute || isAdminRoute) {
     if (isDashboardRoute && token.role === 'admin') {

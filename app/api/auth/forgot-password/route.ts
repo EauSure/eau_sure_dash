@@ -43,10 +43,8 @@ export async function POST(request: Request) {
       });
 
       if (!sent) {
-        console.warn('Password reset email was not delivered for:', email);
+        console.warn('Password reset email was not delivered.');
       }
-
-      console.info('Password reset link:', resetUrl);
 
       if (process.env.NODE_ENV !== 'production') {
         return NextResponse.json({

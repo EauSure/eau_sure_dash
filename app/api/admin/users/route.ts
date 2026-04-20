@@ -1,6 +1,6 @@
-import { getToken } from 'next-auth/jwt';
 import { NextRequest, NextResponse } from 'next/server';
 import { getClient } from '@/lib/mongodb';
+import { requireAdminContext } from '@/lib/server-auth';
 import type { User } from '@/lib/user';
 
 const AWAY_THRESHOLD_MS = 3 * 60 * 1000;
@@ -80,9 +80,8 @@ function toAdminUserDTO(user: User, now: number): AdminUserDTO {
 }
 
 export async function GET(req: NextRequest) {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-
-  if (!token || token.role !== 'admin') {
+  const auth = await requireAdminContext(req);
+  if (!auth) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 

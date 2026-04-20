@@ -1,9 +1,9 @@
 import { mkdir, writeFile } from 'fs/promises';
 import path from 'path';
 import { ObjectId } from 'mongodb';
-import { getToken } from 'next-auth/jwt';
 import { NextRequest, NextResponse } from 'next/server';
 import { getClient } from '@/lib/mongodb';
+import { requireAdminContext } from '@/lib/server-auth';
 
 export const runtime = 'nodejs';
 
@@ -44,11 +44,11 @@ function toReleaseDto(release: FirmwareRelease) {
 }
 
 async function requireAdmin(req: NextRequest) {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-  if (!token || token.role !== 'admin') {
+  const auth = await requireAdminContext(req);
+  if (!auth) {
     return null;
   }
-  return token;
+  return auth;
 }
 
 export async function GET(req: NextRequest) {
@@ -136,7 +136,7 @@ export async function POST(req: NextRequest) {
     await writeFile(absoluteFilePath, fileBuffer);
 
     const now = new Date();
-    const uploadedBy = typeof token.email === 'string' ? token.email : 'admin@local';
+    const uploadedBy = token.email;
 
     const record: Omit<FirmwareRelease, '_id'> = {
       releaseId,

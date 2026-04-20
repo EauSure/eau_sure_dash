@@ -1,19 +1,19 @@
 import { ObjectId } from 'mongodb';
-import { getToken } from 'next-auth/jwt';
 import { NextRequest, NextResponse } from 'next/server';
 import { getClient } from '@/lib/mongodb';
+import { getRequestAuthContext } from '@/lib/server-auth';
 import { getUserByEmail } from '@/lib/user';
 import type { Chat } from '@/lib/models/Chat';
 import { chatTypingSchema } from '@/lib/models/Chat';
 
 export async function POST(req: NextRequest) {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-  const role = typeof token?.role === 'string' ? token.role : null;
-  const email = typeof token?.email === 'string' ? token.email : null;
-
-  if (role !== 'admin' && !email) {
+  const auth = await getRequestAuthContext(req);
+  if (!auth) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+
+  const role = auth.role;
+  const email = auth.email;
 
   try {
     const body = await req.json().catch(() => null);

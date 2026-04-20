@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb';
-import { getToken } from 'next-auth/jwt';
 import { NextRequest, NextResponse } from 'next/server';
 import { getClient } from '@/lib/mongodb';
+import { requireAdminContext } from '@/lib/server-auth';
 import type { User } from '@/lib/user';
 
 const allowedRoles = ['admin', 'operator'] as const;
@@ -23,9 +23,8 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-
-  if (!token || token.role !== 'admin') {
+  const auth = await requireAdminContext(req);
+  if (!auth) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
@@ -62,7 +61,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    if (token.email && target.email === token.email) {
+    if (target.email === auth.email) {
       return NextResponse.json(
         { error: 'You cannot modify your own account' },
         { status: 400 }
@@ -119,9 +118,8 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-
-  if (!token || token.role !== 'admin') {
+  const auth = await requireAdminContext(req);
+  if (!auth) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
@@ -142,7 +140,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    if (token.email && target.email === token.email) {
+    if (target.email === auth.email) {
       return NextResponse.json(
         { error: 'You cannot delete your own account' },
         { status: 400 }

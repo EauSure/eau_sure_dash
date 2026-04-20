@@ -3,35 +3,37 @@
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { useLocale } from 'next-intl';
 import { Users, Activity, Rocket, Stethoscope } from 'lucide-react';
 import { useT } from '@/lib/useT';
 
 export default function AdminDashboardPage() {
   const t = useT('admin');
+  const locale = useLocale();
 
   const adminModules = [
     {
       title: t('manageUsers.title'),
       description: t('manageUsers.description'),
-      href: '/admin/manage-users',
+      href: `/${locale}/admin/manage-users`,
       icon: Users,
     },
     {
       title: t('superviseSystem.title'),
       description: t('superviseSystem.description'),
-      href: '/admin/supervise-system',
+      href: `/${locale}/admin/supervise-system`,
       icon: Activity,
     },
     {
       title: t('deployUpdates.title'),
       description: t('deployUpdates.description'),
-      href: '/admin/deploy-updates',
+      href: `/${locale}/admin/deploy-updates`,
       icon: Rocket,
     },
     {
       title: t('diagnoseProblems.title'),
       description: t('diagnoseProblems.description'),
-      href: '/admin/diagnose-problems',
+      href: `/${locale}/admin/diagnose-problems`,
       icon: Stethoscope,
     },
   ];

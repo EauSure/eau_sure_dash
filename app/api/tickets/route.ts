@@ -2,6 +2,7 @@ import { ObjectId } from 'mongodb';
 import { getToken } from 'next-auth/jwt';
 import { NextRequest, NextResponse } from 'next/server';
 import { getClient } from '@/lib/mongodb';
+import { requireAdminContext } from '@/lib/server-auth';
 import { getUserByEmail } from '@/lib/user';
 import type { Ticket } from '@/lib/models/Ticket';
 import {
@@ -199,10 +200,8 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-  const tokenPayload = token && typeof token === 'object' ? token : null;
-
-  if (!tokenPayload || tokenPayload.role !== 'admin') {
+  const auth = await requireAdminContext(req);
+  if (!auth) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 

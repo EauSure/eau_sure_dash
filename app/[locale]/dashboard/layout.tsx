@@ -18,10 +18,6 @@ export default async function UserDashboardLayout({
     redirect(`/${locale}/auth/signin`);
   }
 
-  if (session.user.role === 'admin') {
-    redirect(`/${locale}/admin`);
-  }
-
   return (
     <DashboardLayout>
       <HeartbeatProvider>{children}</HeartbeatProvider>

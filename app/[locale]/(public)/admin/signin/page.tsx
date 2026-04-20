@@ -37,7 +37,9 @@ export default function AdminSignInPage() {
         redirect: false,
         email,
         password,
+        role: 'admin',
         expectedRole: 'admin',
+        roleMismatchError: 'admin',
       });
 
       if (result?.error) {

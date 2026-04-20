@@ -6,6 +6,86 @@ interface PasswordResetEmailInput {
   locale: string;
 }
 
+type MailProvider = 'resend' | 'brevo';
+
+function getMailProvider(): MailProvider {
+  const configured = (process.env.MAIL_PROVIDER || 'resend').trim().toLowerCase();
+  return configured === 'brevo' ? 'brevo' : 'resend';
+}
+
+function parseFromAddress(value: string) {
+  const trimmed = value.trim();
+  const bracketMatch = trimmed.match(/<([^>]+)>/);
+  if (bracketMatch?.[1]) {
+    return bracketMatch[1].trim();
+  }
+  return trimmed;
+}
+
+async function sendWithResend(params: {
+  apiKey: string;
+  from: string;
+  to: string;
+  subject: string;
+  html: string;
+  text: string;
+}) {
+  const resend = new Resend(params.apiKey);
+  const result = await resend.emails.send({
+    from: params.from,
+    to: params.to,
+    subject: params.subject,
+    html: params.html,
+    text: params.text,
+  });
+
+  if (result.error) {
+    console.error('Resend API error:', result.error);
+    return false;
+  }
+
+  return true;
+}
+
+async function sendWithBrevo(params: {
+  apiKey: string;
+  from: string;
+  appName: string;
+  to: string;
+  subject: string;
+  html: string;
+  text: string;
+}) {
+  const senderEmail = parseFromAddress(params.from);
+  const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      'api-key': params.apiKey,
+    },
+    body: JSON.stringify({
+      sender: {
+        email: senderEmail,
+        name: params.appName,
+      },
+      to: [{ email: params.to }],
+      subject: params.subject,
+      htmlContent: params.html,
+      textContent: params.text,
+    }),
+    cache: 'no-store',
+  });
+
+  if (!response.ok) {
+    const details = await response.text().catch(() => '');
+    console.error('Brevo API error:', details || `HTTP ${response.status}`);
+    return false;
+  }
+
+  return true;
+}
+
 function getLocalizedCopy(locale: string) {
   if (locale === 'fr') {
     return {
@@ -46,18 +126,26 @@ export async function sendPasswordResetEmail({
   resetUrl,
   locale,
 }: PasswordResetEmailInput): Promise<boolean> {
-  const apiKey = process.env.RESEND_API_KEY;
+  const resendApiKey = process.env.RESEND_API_KEY;
+  const brevoApiKey = process.env.BREVO_API_KEY;
   const from = process.env.MAIL_FROM;
   const appName = process.env.APP_NAME || 'EauSure';
+  const provider = getMailProvider();
 
-  if (!apiKey || !from) {
-    console.warn(
-      'Password reset email skipped: missing RESEND_API_KEY or MAIL_FROM'
-    );
+  if (!from) {
+    console.warn('Password reset email skipped: missing MAIL_FROM');
     return false;
   }
 
-  const resend = new Resend(apiKey);
+  if (provider === 'resend' && !resendApiKey) {
+    console.warn('Password reset email skipped: missing RESEND_API_KEY');
+    return false;
+  }
+
+  if (provider === 'brevo' && !brevoApiKey) {
+    console.warn('Password reset email skipped: missing BREVO_API_KEY');
+    return false;
+  }
 
   const copy = getLocalizedCopy(locale);
 
@@ -83,22 +171,28 @@ export async function sendPasswordResetEmail({
   const text = `${copy.greeting}\n\n${copy.intro}\n\n${copy.action}: ${resetUrl}\n\n${copy.expiry}\n${copy.ignore}`;
 
   try {
-    const result = await resend.emails.send({
+    if (provider === 'brevo') {
+      return await sendWithBrevo({
+        apiKey: brevoApiKey as string,
+        from,
+        appName,
+        to,
+        subject: copy.subject,
+        html,
+        text,
+      });
+    }
+
+    return await sendWithResend({
+      apiKey: resendApiKey as string,
       from,
       to,
       subject: copy.subject,
       html,
       text,
     });
-
-    if (result.error) {
-      console.error('Resend API error:', result.error);
-      return false;
-    }
-
-    return true;
   } catch (error) {
-    console.error('Failed to send Resend password reset email:', error);
+    console.error('Failed to send password reset email:', error);
     return false;
   }
 }

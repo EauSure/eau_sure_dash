@@ -1,9 +1,9 @@
 import { ObjectId } from 'mongodb';
-import { getToken } from 'next-auth/jwt';
 import { NextRequest, NextResponse } from 'next/server';
 import { Filter } from 'bad-words';
 import { serializeChat } from '@/lib/chat';
 import { getClient } from '@/lib/mongodb';
+import { getRequestAuthContext } from '@/lib/server-auth';
 import { getUserByEmail } from '@/lib/user';
 import type { Chat } from '@/lib/models/Chat';
 import { chatSendSchema } from '@/lib/models/Chat';
@@ -11,13 +11,13 @@ import { chatSendSchema } from '@/lib/models/Chat';
 const filter = new Filter();
 
 export async function POST(req: NextRequest) {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-  const email = typeof token?.email === 'string' ? token.email : null;
-  const role = typeof token?.role === 'string' ? token.role : null;
-
-  if (!email && role !== 'admin') {
+  const auth = await getRequestAuthContext(req);
+  if (!auth) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+
+  const email = auth.email;
+  const role = auth.role;
 
   try {
     const body = await req.json().catch(() => null);

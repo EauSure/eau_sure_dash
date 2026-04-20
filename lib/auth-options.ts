@@ -10,6 +10,17 @@ import {
   updateUserPresenceById,
 } from './user';
 
+const nextAuthSecret = process.env.NEXTAUTH_SECRET || '';
+const jwtSecret = process.env.JWT_SECRET || '';
+
+if (nextAuthSecret.length < 64) {
+  throw new Error('NEXTAUTH_SECRET must be at least 64 characters long.');
+}
+
+if (jwtSecret && jwtSecret.length < 64) {
+  throw new Error('JWT_SECRET must be at least 64 characters long when set.');
+}
+
 export const authOptions: NextAuthOptions = {
   adapter: MongoDBAdapter(clientPromise),
   // NEXTAUTH_SECRET must be ≥64 chars. Rotate every 90 days.
@@ -165,8 +176,10 @@ export const authOptions: NextAuthOptions = {
           : undefined;
 
       if (tokenUserId) {
-        await updateUserPresenceById(tokenUserId, 'offline');
-        return;
+        const updated = await updateUserPresenceById(tokenUserId, 'offline');
+        if (updated) {
+          return;
+        }
       }
 
       const email = tokenEmail || sessionEmail;

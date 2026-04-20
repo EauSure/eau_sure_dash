@@ -67,7 +67,9 @@ export default function SignUpPage() {
         redirect: false,
         email,
         password,
-        expectedRole: 'operator',
+        role: 'user',
+        expectedRole: 'user',
+        roleMismatchError: 'user',
       });
 
       if (result?.error) {

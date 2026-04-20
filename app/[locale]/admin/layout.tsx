@@ -18,10 +18,6 @@ export default async function AdminSectionLayout({
     redirect(`/${locale}/auth/signin`);
   }
 
-  if (session.user.role !== 'admin') {
-    redirect(`/${locale}/dashboard`);
-  }
-
   return (
     <AdminLayout>
       <HeartbeatProvider>{children}</HeartbeatProvider>

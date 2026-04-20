@@ -1,7 +1,7 @@
 import { unlink } from 'fs/promises';
-import { getToken } from 'next-auth/jwt';
 import { NextRequest, NextResponse } from 'next/server';
 import { getClient } from '@/lib/mongodb';
+import { requireAdminContext } from '@/lib/server-auth';
 
 export const runtime = 'nodejs';
 
@@ -9,9 +9,8 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ releaseId: string }> }
 ) {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-
-  if (!token || token.role !== 'admin') {
+  const auth = await requireAdminContext(req);
+  if (!auth) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 

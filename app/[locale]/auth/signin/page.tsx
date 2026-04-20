@@ -50,8 +50,10 @@ export default function SignInPage() {
         redirect: false,
         email: values.email,
         password: values.password,
+        role: 'user',
         rememberMe: String(values.rememberMe),
-        expectedRole: 'operator',
+        expectedRole: 'user',
+        roleMismatchError: 'user',
       });
 
       if (result?.error) {
