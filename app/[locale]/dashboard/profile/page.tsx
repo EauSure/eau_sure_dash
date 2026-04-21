@@ -29,12 +29,13 @@ import { PhoneInput } from '@/components/ui/phone-input';
 import { useT } from '@/lib/useT';
 
 const profileFormSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(100),
+  name: z.string().min(2, 'Name must be at least 2 characters').max(100),
   image: z.string().url('Must be a valid URL').optional().or(z.literal('')),
   bio: z.string().max(500, 'Bio must be less than 500 characters').optional().or(z.literal('')),
   organization: z.string().max(100).optional().or(z.literal('')),
   role: z.string().max(100).optional().or(z.literal('')),
-  phone: z.string().max(20).optional().or(z.literal('')),
+  phone: z.string().max(20).regex(/^[+()\d\s.-]*$/, 'Invalid phone format').optional().or(z.literal('')),
+  address: z.string().max(200).optional().or(z.literal('')),
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
@@ -58,6 +59,7 @@ export default function ProfilePage() {
       organization: '',
       role: '',
       phone: '',
+      address: '',
     },
   });
 
@@ -97,8 +99,9 @@ export default function ProfilePage() {
         image: data.image || '',
         bio: data.bio || '',
         organization: data.organization || '',
-        role: data.role || '',
+        role: data.profileRole || '',
         phone: data.phone || '',
+        address: data.address || '',
       });
     } catch (error) {
       console.error('Failed to fetch profile:', error);
@@ -146,17 +149,15 @@ export default function ProfilePage() {
         image: updatedProfile.image || '',
         bio: updatedProfile.bio || '',
         organization: updatedProfile.organization || '',
-        role: updatedProfile.role || '',
+        role: updatedProfile.profileRole || '',
         phone: updatedProfile.phone || '',
+        address: updatedProfile.address || '',
       });
 
       // Update session to reflect new avatar/name in UI
       await update();
 
       toast.success('Profile updated successfully');
-      
-      // Force a hard refresh to update session in all components
-      window.location.reload();
     } catch (error) {
       console.error('Error updating profile:', error);
       toast.error('Failed to update profile');
@@ -172,8 +173,9 @@ export default function ProfilePage() {
         image: profile.image || '',
         bio: profile.bio || '',
         organization: profile.organization || '',
-        role: profile.role || '',
+        role: profile.profileRole || '',
         phone: profile.phone || '',
+        address: profile.address || '',
       });
       toast.info('Changes discarded');
     }
@@ -340,6 +342,21 @@ export default function ProfilePage() {
                         />
                       </FormControl>
                       <FormDescription>{t('phoneDescription')}</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="address"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('location')}</FormLabel>
+                      <FormControl>
+                        <Input placeholder={t('locationPlaceholder')} {...field} />
+                      </FormControl>
+                      <FormDescription>{t('locationDescription')}</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}

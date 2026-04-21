@@ -104,7 +104,12 @@
       "timezone": "Timezone",
       "timezoneDescription": "All timestamps will be displayed in this timezone",
       "language": "Interface Language",
-      "languageDescription": "Select your preferred language"
+      "languageDescription": "Select your preferred language",
+      "theme": "Theme",
+      "themeDescription": "Choose the interface appearance for this session and future sign-ins",
+      "themeSystem": "System",
+      "themeLight": "Light",
+      "themeDark": "Dark"
     },
     "notifications": {
       "title": "Alert Preferences",
@@ -116,7 +121,29 @@
       "dailySummary": "Daily Summary",
       "dailySummaryDescription": "Get a daily email with system status, water quality metrics, and device health",
       "maintenanceReminders": "Maintenance Reminders",
-      "maintenanceRemindersDescription": "Receive reminders for sensor calibration, anti-fouling cycles, and battery replacements"
+      "maintenanceRemindersDescription": "Receive reminders for sensor calibration, anti-fouling cycles, and battery replacements",
+      "browserNotifications": "Enable browser notifications for critical alerts",
+      "browserNotificationsDescription": "Ask this browser to show a notification when a new critical alert arrives.",
+      "browserUnsupported": "This browser does not support notifications.",
+      "browserGranted": "Browser notifications enabled.",
+      "browserDenied": "Notifications are blocked. Enable them in your browser settings to use this option.",
+      "alertSound": "Play sound on critical alerts",
+      "alertSoundDescription": "Play a short tone in this browser when a new critical alert arrives.",
+      "testSound": "Test sound",
+      "alertThreshold": "Show alerts of priority",
+      "alertThresholdDescription": "Filter the alerts list display without changing what is stored or fetched.",
+      "permission": {
+        "granted": "Granted",
+        "denied": "Denied",
+        "default": "Not requested",
+        "unsupported": "Unavailable"
+      },
+      "thresholds": {
+        "all": "All priorities",
+        "medium": "Medium and above",
+        "high": "High and above",
+        "critical": "Critical only"
+      }
     },
     "units": {
       "title": "Measurement Units",
@@ -125,12 +152,104 @@
       "temperatureDescription": "Used for ambient and water temperature readings",
       "distance": "Distance & Depth",
       "distanceDescription": "Used for well depth and distance measurements",
+      "volume": "Volume unit",
+      "volumeDescription": "Used for water volumes where the dashboard displays them.",
+      "celsius": "Celsius",
+      "fahrenheit": "Fahrenheit",
+      "liters": "Liters",
+      "gallons": "Gallons",
       "note": "Note:",
       "noteText": "Water quality metrics (pH, TDS) are displayed in standard units regardless of these settings."
     },
     "actionBar": {
       "unsavedMessage": "You have modified your settings. Save or discard changes to continue.",
       "savedMessage": "Your settings are up to date."
+    },
+    "toasts": {
+      "saved": "Settings saved."
+    },
+    "sections": {
+      "appearance": "Appearance",
+      "alerts": "Notifications & Alerts",
+      "privacy": "Privacy & Session",
+      "dashboard": "Dashboard Behavior",
+      "accessibility": "Accessibility",
+      "danger": "Danger Zone"
+    },
+    "customizedSingular": "customized",
+    "customizedPlural": "customized",
+    "unsaved": "Unsaved changes",
+    "appearance": {
+      "compactMode": "Compact mode",
+      "compactModeDescription": "Reduce spacing and text size across dashboard views to fit more information.",
+      "sidebarDefaultCollapsed": "Start with sidebar collapsed by default",
+      "sidebarDefaultCollapsedDescription": "Use this state for fresh dashboard sessions and new logins.",
+      "dateFormat": "Date format",
+      "dateFormatDescription": "Choose how dates are displayed across dashboard tables and timelines.",
+      "timeFormat": "Use 24-hour time",
+      "timeFormatDescription": "Switch off to use 12-hour time with AM/PM."
+    },
+    "privacy": {
+      "sessionTimeout": "Automatically sign me out after",
+      "sessionTimeoutDescription": "End the session after inactivity. Activity resets the timer.",
+      "neverWarning": "Never signing out automatically is not recommended on shared devices.",
+      "presenceVisible": "Show my online status to administrators",
+      "presenceVisibleDescription": "When disabled, administrators will see you as offline even when you are active.",
+      "loginHistory": "Recent sign-ins",
+      "loginHistoryDescription": "This is for your security. Location context is based on your stored timezone.",
+      "noLoginHistory": "No recent sign-ins recorded yet.",
+      "timeout": {
+        "30": "30 minutes of inactivity",
+        "60": "1 hour",
+        "120": "2 hours",
+        "240": "4 hours",
+        "never": "Never"
+      }
+    },
+    "dashboardBehavior": {
+      "refreshRate": "Sensor data refresh rate",
+      "refreshRateDescription": "Choose how often live sensor readings refresh on the dashboard.",
+      "defaultTab": "When I open the dashboard, show me",
+      "defaultTabDescription": "Scroll the dashboard to the section you prefer first.",
+      "refresh": {
+        "5": "Every 5 seconds",
+        "10": "Every 10 seconds",
+        "30": "Every 30 seconds",
+        "manual": "Manual only"
+      },
+      "tabs": {
+        "overview": "Overview",
+        "live": "Live sensor data",
+        "alerts": "Alerts",
+        "devices": "Devices"
+      }
+    },
+    "accessibility": {
+      "reducedMotion": "Reduce animations",
+      "reducedMotionDescription": "Minimize motion effects in addition to your operating system setting.",
+      "highContrast": "Increase contrast",
+      "highContrastDescription": "Strengthen borders and secondary text for better readability.",
+      "fontSize": "Text size",
+      "fontSizeDescription": "Adjust the base text size used across the dashboard.",
+      "font": {
+        "sm": "Small",
+        "md": "Medium",
+        "lg": "Large"
+      }
+    },
+    "danger": {
+      "password": "Password",
+      "passwordDescription": "Use the password reset flow to change your password securely.",
+      "passwordLink": "Change password"
+    },
+    "timezone": "Timezone",
+    "timezoneRegions": {
+      "africa": "Africa",
+      "europe": "Europe",
+      "america": "America",
+      "asia": "Asia",
+      "australiaPacific": "Australia & Pacific",
+      "universal": "Universal"
     }
   },
   "admin": {
@@ -541,8 +660,8 @@
         "description": "Enter your new password"
       }
     }
-  }
-  ,"errors": {
+  },
+  "errors": {
     "roleOperatorOnly": "This portal is for operators only.",
     "roleAdminOnly": "This portal is for administrators only.",
     "sessionExpired": "Your session has expired. Please sign in again."

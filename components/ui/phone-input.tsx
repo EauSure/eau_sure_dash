@@ -10,10 +10,11 @@ export interface PhoneInputProps extends React.ComponentProps<typeof PhoneInput>
 }
 
 const PhoneInputComponent = React.forwardRef<HTMLInputElement, PhoneInputProps>(
-  ({ className, onChange, value, ...props }) => {
+  ({ className, onChange, value, ...props }, ref) => {
     return (
       <PhoneInput
         {...props}
+        inputRef={ref}
         value={value}
         onChange={onChange}
         international

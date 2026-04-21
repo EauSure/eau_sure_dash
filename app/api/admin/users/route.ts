@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getClient } from '@/lib/mongodb';
+import { dbConnect } from '@/lib/mongodb';
 import { requireAdminContext } from '@/lib/server-auth';
 import type { User } from '@/lib/user';
 
@@ -31,6 +31,10 @@ type AdminUserDTO = {
 };
 
 function computeStatus(user: User, now: number): PresenceStatus {
+  if (user.presenceVisible === false) {
+    return 'offline';
+  }
+
   const storedStatus = user.presence?.status;
   if (storedStatus === 'offline') {
     return 'offline';
@@ -55,17 +59,21 @@ function computeStatus(user: User, now: number): PresenceStatus {
 function toAdminUserDTO(user: User, now: number): AdminUserDTO {
   const lastSeenDate = user.presence?.lastSeen ? new Date(user.presence.lastSeen) : null;
   const status = computeStatus(user, now);
+  const address =
+    typeof user.address === 'string'
+      ? { street: user.address, city: '', country: '' }
+      : {
+          street: user.address?.street || '',
+          city: user.address?.city || '',
+          country: user.address?.country || '',
+        };
 
   return {
     _id: user._id.toString(),
     name: user.name,
     email: user.email,
     phone: typeof user.phone === 'string' ? user.phone : '',
-    address: {
-      street: user.address?.street || '',
-      city: user.address?.city || '',
-      country: user.address?.country || '',
-    },
+    address,
     iotNodeCount: typeof user.iotNodeCount === 'number' ? user.iotNodeCount : 0,
     role: user.role === 'admin' ? 'admin' : 'user',
     status: user.status === 'suspended' ? 'suspended' : 'active',
@@ -86,7 +94,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const client = await getClient();
+    const client = await dbConnect();
     const db = client.db(process.env.MONGODB_DB || 'water_quality');
 
     const users = await db

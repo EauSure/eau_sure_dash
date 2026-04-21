@@ -10,8 +10,9 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { UserDropdown } from '@/components/user-dropdown';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useT } from '@/lib/useT';
+import { useUserPreferences } from '@/components/providers/UserPreferencesProvider';
 import { 
   LayoutDashboard, 
   AlertTriangle, 
@@ -61,14 +62,20 @@ export function DashboardLayout({
   const tApp = useT('app');
   const locale = getLocaleFromPath(pathname);
   const resolvedSignOutCallback = `/${locale}/auth/signin`;
+  const hasMountedRef = useRef(false);
+  const sidebarSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const { preferences } = useUserPreferences();
   
   // Initialize state from localStorage immediately to avoid animation flash
   const [isCollapsed, setIsCollapsed] = useState(() => {
     if (typeof window !== 'undefined') {
       const savedState = localStorage.getItem(sidebarStorageKey);
+      if (savedState === null) {
+        return preferences.sidebarDefaultCollapsed;
+      }
       return savedState === 'true';
     }
-    return false;
+    return preferences.sidebarDefaultCollapsed;
   });
 
   // Save sidebar state to localStorage when it changes
@@ -77,6 +84,28 @@ export function DashboardLayout({
     setIsCollapsed(newState);
     localStorage.setItem(sidebarStorageKey, String(newState));
   };
+
+  useEffect(() => {
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true;
+      return;
+    }
+
+    if (sidebarSaveTimeoutRef.current) {
+      clearTimeout(sidebarSaveTimeoutRef.current);
+    }
+
+    localStorage.setItem(sidebarStorageKey, String(isCollapsed));
+    sidebarSaveTimeoutRef.current = setTimeout(() => {
+      localStorage.setItem(sidebarStorageKey, String(isCollapsed));
+    }, 1000);
+
+    return () => {
+      if (sidebarSaveTimeoutRef.current) {
+        clearTimeout(sidebarSaveTimeoutRef.current);
+      }
+    };
+  }, [isCollapsed, sidebarStorageKey]);
 
   const defaultNavigation: NavigationItem[] = [
     { name: t('overview'), href: '/dashboard', icon: LayoutDashboard },

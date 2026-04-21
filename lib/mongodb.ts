@@ -80,3 +80,7 @@ export default clientPromise;
 export async function getClient(): Promise<MongoClient> {
   return await getClientPromise();
 }
+
+export async function dbConnect(): Promise<MongoClient> {
+  return await getClientPromise();
+}

@@ -1,6 +1,9 @@
-import { getServerSession } from 'next-auth/next';
-import { redirect } from 'next/navigation';
-import { authOptions } from '@/lib/auth-options';
+'use client';
+
+import { useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import { useLocale } from 'next-intl';
+import { useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -14,19 +17,27 @@ import {
 } from '@/components/ui/table';
 import { Plus, Cpu, Thermometer, Battery, ActivitySquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useUnits } from '@/lib/hooks/useUnits';
 
-export default async function DeviceManagementPage() {
-  const session = await getServerSession(authOptions);
+export default function DeviceManagementPage() {
+  const { status } = useSession();
+  const router = useRouter();
+  const locale = useLocale();
+  const { convertTemp } = useUnits();
 
-  if (!session) {
-    redirect('/fr/auth/signin');
-  }
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push(`/${locale}/auth/signin`);
+    }
+  }, [locale, router, status]);
+
+  if (status === 'loading') return null;
 
   const devices = [
     {
       id: 'DEV-ESP32-001',
       status: 'Online',
-      temperature: '22.4 C',
+      temperature: 22.4,
       battery: 87,
       esp32: 'Healthy',
       performance: 'Stable',
@@ -34,7 +45,7 @@ export default async function DeviceManagementPage() {
     {
       id: 'DEV-ESP32-002',
       status: 'Warning',
-      temperature: '29.1 C',
+      temperature: 29.1,
       battery: 41,
       esp32: 'High Load',
       performance: 'Degraded',
@@ -42,7 +53,7 @@ export default async function DeviceManagementPage() {
     {
       id: 'DEV-ESP32-003',
       status: 'Offline',
-      temperature: '--',
+      temperature: null,
       battery: 0,
       esp32: 'No Signal',
       performance: 'Unavailable',
@@ -69,7 +80,7 @@ export default async function DeviceManagementPage() {
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           {[
             { label: 'Connected', value: '2 / 3', percentage: 67, sublabel: 'online', accent: 'bg-emerald-400' },
-            { label: 'Temperature Avg', value: '25.7 C', percentage: 71, sublabel: 'stable', accent: 'bg-blue-500' },
+            { label: 'Temperature Avg', value: convertTemp(25.7), percentage: 71, sublabel: 'stable', accent: 'bg-blue-500' },
             { label: 'Battery Avg', value: '64%', percentage: 64, sublabel: 'avg', accent: 'bg-amber-400' },
             { label: 'ESP32 Health', value: 'Good', percentage: 84, sublabel: 'fleet', accent: 'bg-blue-500' },
           ].map((card) => (
@@ -131,7 +142,7 @@ export default async function DeviceManagementPage() {
                     <TableCell className="px-6 py-4">
                       <span className="inline-flex items-center gap-2">
                         <Thermometer className="h-4 w-4 text-muted-foreground" />
-                        {device.temperature}
+                        {typeof device.temperature === 'number' ? convertTemp(device.temperature) : '--'}
                       </span>
                     </TableCell>
                     <TableCell className="px-6 py-4 text-gray-700 dark:text-foreground">{device.esp32}</TableCell>

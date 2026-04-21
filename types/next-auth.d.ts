@@ -5,6 +5,9 @@ declare module 'next-auth' {
     user: {
       id: string;
       role: 'user' | 'admin';
+      timezone?: string;
+      language?: 'fr' | 'en' | 'ar';
+      theme?: 'light' | 'dark' | 'system';
     } & DefaultSession['user'];
   }
 
@@ -13,6 +16,9 @@ declare module 'next-auth' {
     role?: 'user' | 'admin';
     rememberMe?: boolean;
     fingerprint?: string;
+    timezone?: string;
+    language?: 'fr' | 'en' | 'ar';
+    theme?: 'light' | 'dark' | 'system';
   }
 }
 
@@ -22,5 +28,9 @@ declare module 'next-auth/jwt' {
     role?: 'user' | 'admin';
     rememberMe?: boolean;
     fingerprint?: string;
+    userId?: string;
+    timezone?: string;
+    language?: 'fr' | 'en' | 'ar';
+    theme?: 'light' | 'dark' | 'system';
   }
 }

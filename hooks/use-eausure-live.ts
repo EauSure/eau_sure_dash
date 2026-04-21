@@ -77,6 +77,7 @@ export function useEauSureLive(options?: UseEauSureLiveOptions): UseEauSureLiveR
       if (pollInterval) return;
       setSource('polling');
       void refresh();
+      if (pollIntervalMs <= 0) return;
       pollInterval = setInterval(() => {
         void refresh();
       }, pollIntervalMs);

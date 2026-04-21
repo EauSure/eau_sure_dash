@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
@@ -16,9 +16,14 @@ import {
 import { AlertTriangle, Bell, ShieldAlert } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useT } from '@/lib/useT';
+import { playAlertTone } from '@/lib/alert-tone';
+import { useDateFormat } from '@/lib/hooks/useDateFormat';
+import { useTimeFormat } from '@/lib/hooks/useTimeFormat';
+import { useUserPreferences } from '@/components/providers/UserPreferencesProvider';
 import type { EauSurePaginatedResponse, EauSureSensorData } from '@/types/eausure';
 
 type FeedSeverity = 'Critical' | 'Warning' | 'Info';
+type AlertThreshold = 'all' | 'medium' | 'high' | 'critical';
 
 function deriveSeverity(item: EauSureSensorData): FeedSeverity {
   const eventType = item.event.type || 'None';
@@ -28,12 +33,31 @@ function deriveSeverity(item: EauSureSensorData): FeedSeverity {
   return 'Info';
 }
 
+function severityRank(severity: FeedSeverity) {
+  if (severity === 'Critical') return 3;
+  if (severity === 'Warning') return 2;
+  return 1;
+}
+
+function thresholdRank(threshold: AlertThreshold) {
+  if (threshold === 'critical') return 3;
+  if (threshold === 'high') return 3;
+  if (threshold === 'medium') return 2;
+  return 1;
+}
+
 export default function AlertsPage() {
   const t = useT('alerts');
+  const { preferences } = useUserPreferences();
+  const { formatDate } = useDateFormat();
+  const { formatTime } = useTimeFormat();
   const [feed, setFeed] = useState<EauSureSensorData[]>([]);
   const [loading, setLoading] = useState(true);
+  const knownAlertIdsRef = useRef<Set<string>>(new Set());
+  const hasLoadedOnceRef = useRef(false);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const fetchFeed = async () => {
+  const fetchFeed = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams({ page: '1', limit: '50' });
@@ -48,34 +72,66 @@ export default function AlertsPage() {
 
       const payload = (await res.json()) as EauSurePaginatedResponse | EauSureSensorData[];
       const list = Array.isArray(payload) ? payload : payload.data;
-      setFeed(list.filter((item) => item.event.type !== 'None'));
+      const alerts = list.filter((item) => item.event.type !== 'None');
+
+      if (hasLoadedOnceRef.current) {
+        alerts.forEach((alert) => {
+          if (knownAlertIdsRef.current.has(alert._id) || deriveSeverity(alert) !== 'Critical') return;
+          const message = `${alert.event.type || 'Critical'} | pH ${alert.ph.value.toFixed(2)} | TDS ${alert.tds.value}`;
+
+          if (preferences.notificationsEnabled && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+            new Notification('EauSûre Alert', {
+              body: message,
+              icon: '/favicon.ico',
+            });
+          }
+
+          if (preferences.alertSound) {
+            playAlertTone();
+          }
+        });
+      }
+
+      knownAlertIdsRef.current = new Set(alerts.map((alert) => alert._id));
+      hasLoadedOnceRef.current = true;
+      setFeed(alerts);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to load alerts';
       toast.error(message);
     } finally {
       setLoading(false);
     }
-  };
+  }, [preferences.alertSound, preferences.notificationsEnabled]);
 
   useEffect(() => {
     void fetchFeed();
-    const interval = setInterval(() => {
+    intervalRef.current = setInterval(() => {
       void fetchFeed();
     }, 15000);
 
-    return () => clearInterval(interval);
-  }, []);
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, [fetchFeed]);
+
+  const visibleFeed = useMemo(
+    () => feed.filter((item) => severityRank(deriveSeverity(item)) >= thresholdRank(preferences.alertDisplayThreshold)),
+    [feed, preferences.alertDisplayThreshold]
+  );
 
   const stats = useMemo(() => {
-    const critical = feed.filter((item) => deriveSeverity(item) === 'Critical').length;
-    const warning = feed.filter((item) => deriveSeverity(item) === 'Warning').length;
+    const critical = visibleFeed.filter((item) => deriveSeverity(item) === 'Critical').length;
+    const warning = visibleFeed.filter((item) => deriveSeverity(item) === 'Warning').length;
 
     return {
       critical,
       warning,
-      total: feed.length,
+      total: visibleFeed.length,
     };
-  }, [feed]);
+  }, [visibleFeed]);
 
   return (
     <div className="min-h-[calc(100vh-64px)] bg-gray-50/70 px-5 py-8 dark:bg-background sm:px-8 sm:py-10">
@@ -141,7 +197,7 @@ export default function AlertsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {feed.map((alert) => {
+                {visibleFeed.map((alert) => {
                   const severity = deriveSeverity(alert);
                   const eventType = alert.event.type || 'Unknown';
                   const message = `${eventType} | pH ${alert.ph.value.toFixed(2)} | TDS ${alert.tds.value}`;
@@ -153,7 +209,7 @@ export default function AlertsPage() {
                       <TableCell className="px-6 py-4 text-gray-700 dark:text-foreground">{alert.deviceId}</TableCell>
                       <TableCell className="px-6 py-4 text-gray-700 dark:text-foreground">{message}</TableCell>
                       <TableCell className="px-6 py-4 text-muted-foreground">
-                        {new Date(alert.timestamp).toLocaleString()}
+                        {formatDate(alert.timestamp)} {formatTime(alert.timestamp)}
                       </TableCell>
                       <TableCell className="px-6 py-4 text-right">
                         <Badge className={cn(

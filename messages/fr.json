@@ -12,7 +12,8 @@
     },
     "unsavedChanges": "Modifications non enregistrées",
     "allChangesSaved": "Toutes les modifications enregistrées"
-  },  "app": {
+  },
+  "app": {
     "title": "Surveillance de l'eau",
     "subtitle": "Plateforme IoT"
   },
@@ -88,7 +89,8 @@
       "unsavedMessage": "Vous avez modifié votre profil. Enregistrez ou annulez les modifications pour continuer.",
       "savedMessage": "Votre profil est à jour."
     }
-  },  "settings": {
+  },
+  "settings": {
     "title": "Paramètres",
     "description": "Gérez vos préférences d'application, notifications et unités système",
     "tabs": {
@@ -102,7 +104,12 @@
       "timezone": "Fuseau horaire",
       "timezoneDescription": "Tous les horodatages seront affichés dans ce fuseau horaire",
       "language": "Langue de l'interface",
-      "languageDescription": "Sélectionnez votre langue préférée"
+      "languageDescription": "Sélectionnez votre langue préférée",
+      "theme": "Theme",
+      "themeDescription": "Choisissez l'apparence de l'interface pour cette session et vos prochaines connexions",
+      "themeSystem": "Systeme",
+      "themeLight": "Clair",
+      "themeDark": "Sombre"
     },
     "notifications": {
       "title": "Préférences d'alerte",
@@ -114,7 +121,29 @@
       "dailySummary": "Résumé quotidien",
       "dailySummaryDescription": "Recevez un e-mail quotidien avec l'état du système, les mesures de qualité de l'eau et la santé des appareils",
       "maintenanceReminders": "Rappels de maintenance",
-      "maintenanceRemindersDescription": "Recevez des rappels pour l'étalonnage des capteurs, les cycles anti-encrassement et les remplacements de batterie"
+      "maintenanceRemindersDescription": "Recevez des rappels pour l'étalonnage des capteurs, les cycles anti-encrassement et les remplacements de batterie",
+      "browserNotifications": "Activer les notifications du navigateur pour les alertes critiques",
+      "browserNotificationsDescription": "Demande a ce navigateur d'afficher une notification lorsqu'une nouvelle alerte critique arrive.",
+      "browserUnsupported": "Ce navigateur ne prend pas en charge les notifications.",
+      "browserGranted": "Notifications du navigateur activees.",
+      "browserDenied": "Les notifications sont bloquees. Activez-les dans les parametres du navigateur pour utiliser cette option.",
+      "alertSound": "Jouer un son pour les alertes critiques",
+      "alertSoundDescription": "Joue un court signal sonore dans ce navigateur lorsqu'une alerte critique arrive.",
+      "testSound": "Tester le son",
+      "alertThreshold": "Afficher les alertes de priorite",
+      "alertThresholdDescription": "Filtre uniquement l'affichage de la liste des alertes, sans modifier les donnees stockees ou recuperees.",
+      "permission": {
+        "granted": "Accorde",
+        "denied": "Refuse",
+        "default": "Non demande",
+        "unsupported": "Indisponible"
+      },
+      "thresholds": {
+        "all": "Toutes les priorites",
+        "medium": "Moyenne et plus",
+        "high": "Haute et plus",
+        "critical": "Critique uniquement"
+      }
     },
     "units": {
       "title": "Unités de mesure",
@@ -124,11 +153,103 @@
       "distance": "Distance et profondeur",
       "distanceDescription": "Utilisé pour les mesures de profondeur de puits et de distance",
       "note": "Remarque :",
-      "noteText": "Les mesures de qualité de l'eau (pH, TDS) sont affichées en unités standard quels que soient ces paramètres."
+      "noteText": "Les mesures de qualité de l'eau (pH, TDS) sont affichées en unités standard quels que soient ces paramètres.",
+      "volume": "Unite de volume",
+      "volumeDescription": "Utilisee pour les volumes d'eau affiches par le tableau de bord.",
+      "celsius": "Celsius",
+      "fahrenheit": "Fahrenheit",
+      "liters": "Litres",
+      "gallons": "Gallons"
     },
     "actionBar": {
       "unsavedMessage": "Vous avez modifié vos paramètres. Enregistrez ou annulez les modifications pour continuer.",
       "savedMessage": "Vos paramètres sont à jour."
+    },
+    "timezone": "Fuseau horaire",
+    "timezoneRegions": {
+      "africa": "Afrique",
+      "europe": "Europe",
+      "america": "Amerique",
+      "asia": "Asie",
+      "australiaPacific": "Australie et Pacifique",
+      "universal": "Universel"
+    },
+    "toasts": {
+      "saved": "Parametres enregistres."
+    },
+    "sections": {
+      "appearance": "Apparence",
+      "alerts": "Notifications et alertes",
+      "privacy": "Confidentialite et session",
+      "dashboard": "Comportement du tableau de bord",
+      "accessibility": "Accessibilite",
+      "danger": "Zone sensible"
+    },
+    "customizedSingular": "personnalise",
+    "customizedPlural": "personnalises",
+    "unsaved": "Modifications non enregistrees",
+    "appearance": {
+      "compactMode": "Mode compact",
+      "compactModeDescription": "Reduit les espacements et la taille du texte pour afficher plus d'informations.",
+      "sidebarDefaultCollapsed": "Demarrer avec la barre laterale repliee",
+      "sidebarDefaultCollapsedDescription": "Utilise cet etat pour les nouvelles sessions du tableau de bord.",
+      "dateFormat": "Format de date",
+      "dateFormatDescription": "Choisissez le format des dates dans les tableaux et historiques.",
+      "timeFormat": "Utiliser l'heure sur 24 heures",
+      "timeFormatDescription": "Desactivez pour utiliser l'heure sur 12 heures avec AM/PM."
+    },
+    "privacy": {
+      "sessionTimeout": "Me deconnecter automatiquement apres",
+      "sessionTimeoutDescription": "Ferme la session apres une periode d'inactivite. Toute activite reinitialise le compteur.",
+      "neverWarning": "Ne jamais se deconnecter automatiquement n'est pas recommande sur un appareil partage.",
+      "presenceVisible": "Afficher mon statut en ligne aux administrateurs",
+      "presenceVisibleDescription": "Lorsque cette option est desactivee, les administrateurs vous verront hors ligne meme si vous etes actif.",
+      "loginHistory": "Connexions recentes",
+      "loginHistoryDescription": "Ceci est affiche pour votre securite. Le contexte de localisation vient du fuseau horaire enregistre.",
+      "noLoginHistory": "Aucune connexion recente enregistree.",
+      "timeout": {
+        "30": "30 minutes d'inactivite",
+        "60": "1 heure",
+        "120": "2 heures",
+        "240": "4 heures",
+        "never": "Jamais"
+      }
+    },
+    "dashboardBehavior": {
+      "refreshRate": "Frequence d'actualisation des capteurs",
+      "refreshRateDescription": "Choisissez la frequence de rafraichissement des mesures en direct.",
+      "defaultTab": "Quand j'ouvre le tableau de bord, afficher",
+      "defaultTabDescription": "Fait defiler le tableau de bord vers la section preferee.",
+      "refresh": {
+        "5": "Toutes les 5 secondes",
+        "10": "Toutes les 10 secondes",
+        "30": "Toutes les 30 secondes",
+        "manual": "Manuel uniquement"
+      },
+      "tabs": {
+        "overview": "Apercu",
+        "live": "Donnees capteurs en direct",
+        "alerts": "Alertes",
+        "devices": "Appareils"
+      }
+    },
+    "accessibility": {
+      "reducedMotion": "Reduire les animations",
+      "reducedMotionDescription": "Reduit les effets de mouvement en plus du reglage du systeme.",
+      "highContrast": "Augmenter le contraste",
+      "highContrastDescription": "Renforce les bordures et les textes secondaires pour une meilleure lisibilite.",
+      "fontSize": "Taille du texte",
+      "fontSizeDescription": "Ajuste la taille de base du texte dans le tableau de bord.",
+      "font": {
+        "sm": "Petit",
+        "md": "Moyen",
+        "lg": "Grand"
+      }
+    },
+    "danger": {
+      "password": "Mot de passe",
+      "passwordDescription": "Utilisez le flux de reinitialisation pour changer votre mot de passe en securite.",
+      "passwordLink": "Changer le mot de passe"
     }
   },
   "admin": {
@@ -539,8 +660,8 @@
         "description": "Entrez votre nouveau mot de passe"
       }
     }
-  }
-  ,"errors": {
+  },
+  "errors": {
     "roleOperatorOnly": "Ce portail est réservé aux opérateurs.",
     "roleAdminOnly": "Ce portail est réservé aux administrateurs.",
     "sessionExpired": "Votre session a expiré. Reconnectez-vous."

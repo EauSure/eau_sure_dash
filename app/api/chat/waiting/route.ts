@@ -48,7 +48,9 @@ export async function GET(req: NextRequest) {
     const waitingUsers: WaitingChat[] = waitingChats.map((chat) => {
       const user = userById.get(chat.userId.toString());
       const address = user?.address
-        ? [user.address.street, user.address.city, user.address.country].filter(Boolean).join(', ')
+        ? typeof user.address === 'string'
+          ? user.address
+          : [user.address.street, user.address.city, user.address.country].filter(Boolean).join(', ')
         : '';
 
       return {

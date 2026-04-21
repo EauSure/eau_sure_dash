@@ -9,7 +9,7 @@ export interface User {
   name: string;
   email: string;
   phone?: string;
-  address?: {
+  address?: string | {
     street?: string;
     city?: string;
     country?: string;
@@ -17,6 +17,30 @@ export interface User {
   iotNodeCount?: number;
   role?: 'user' | 'admin';
   status?: 'active' | 'suspended';
+  timezone?: string;
+  language?: 'fr' | 'en' | 'ar';
+  theme?: 'light' | 'dark' | 'system';
+  sidebarCollapsed?: boolean;
+  compactMode?: boolean;
+  sidebarDefaultCollapsed?: boolean;
+  dateFormat?: 'DD/MM/YYYY' | 'MM/DD/YYYY' | 'YYYY-MM-DD';
+  timeFormat?: '24h' | '12h';
+  notificationsEnabled?: boolean;
+  alertSound?: boolean;
+  alertDisplayThreshold?: 'all' | 'medium' | 'high' | 'critical';
+  sessionTimeout?: number;
+  presenceVisible?: boolean;
+  loginHistory?: Array<{
+    timestamp: Date;
+    timezone: string;
+  }>;
+  sensorRefreshRate?: number;
+  dashboardDefaultTab?: 'overview' | 'live' | 'alerts' | 'devices';
+  tempUnit?: 'C' | 'F';
+  volumeUnit?: 'L' | 'gal';
+  reducedMotion?: boolean;
+  highContrast?: boolean;
+  fontSize?: 'sm' | 'md' | 'lg';
   presence?: {
     status: 'online' | 'away' | 'offline';
     lastActive?: Date | null;
@@ -88,14 +112,31 @@ export async function createUser(
       name,
       email,
       phone: '',
-      address: {
-        street: '',
-        city: '',
-        country: '',
-      },
+      address: '',
       iotNodeCount: 0,
       role,
       status: 'active',
+      timezone: 'Africa/Tunis',
+      language: 'fr',
+      theme: 'system',
+      sidebarCollapsed: false,
+      compactMode: false,
+      sidebarDefaultCollapsed: false,
+      dateFormat: 'DD/MM/YYYY',
+      timeFormat: '24h',
+      notificationsEnabled: false,
+      alertSound: false,
+      alertDisplayThreshold: 'all',
+      sessionTimeout: role === 'admin' ? 120 : 60,
+      presenceVisible: true,
+      loginHistory: [],
+      sensorRefreshRate: 10,
+      dashboardDefaultTab: 'overview',
+      tempUnit: 'C',
+      volumeUnit: 'L',
+      reducedMotion: false,
+      highContrast: false,
+      fontSize: 'md',
       presence: {
         status: 'offline',
         lastActive: null,

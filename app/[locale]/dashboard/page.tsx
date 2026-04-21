@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useLocale } from 'next-intl';
@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { TimezoneClockWidget } from '@/components/ui/TimezoneClockWidget';
 import {
   Activity,
   AlertTriangle,
@@ -27,16 +28,10 @@ import {
 } from 'lucide-react';
 import { useEauSureLive } from '@/hooks/use-eausure-live';
 import { useT } from '@/lib/useT';
+import { useDateFormat } from '@/lib/hooks/useDateFormat';
+import { useTimeFormat } from '@/lib/hooks/useTimeFormat';
+import { useUserPreferences } from '@/components/providers/UserPreferencesProvider';
 import type { EauSureSensorData, EauSureStatsResponse } from '@/types/eausure';
-
-function formatWhen(value: string, locale: string) {
-  return new Intl.DateTimeFormat(locale, {
-    hour: '2-digit',
-    minute: '2-digit',
-    day: '2-digit',
-    month: 'short',
-  }).format(new Date(value));
-}
 
 function statusFromReading(reading: EauSureSensorData | null) {
   if (!reading) return 'No data';
@@ -53,9 +48,18 @@ export default function DashboardPage() {
   const { data: session, status } = useSession();
   const t = useT('dashboard');
   const locale = useLocale();
-  const { latest, history, loading, error, source, refresh } = useEauSureLive();
+  const { preferences } = useUserPreferences();
+  const { formatDate } = useDateFormat();
+  const { formatTime } = useTimeFormat();
+  const { latest, history, loading, error, source, refresh } = useEauSureLive({
+    pollIntervalMs: preferences.sensorRefreshRate * 1000,
+  });
   const [stats, setStats] = useState<EauSureStatsResponse | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
+  const overviewRef = useRef<HTMLDivElement | null>(null);
+  const liveRef = useRef<HTMLDivElement | null>(null);
+  const alertsRef = useRef<HTMLDivElement | null>(null);
+  const devicesRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -86,6 +90,17 @@ export default function DashboardPage() {
     void loadStats();
   }, []);
 
+  useEffect(() => {
+    const sectionRefs = {
+      overview: overviewRef,
+      live: liveRef,
+      alerts: alertsRef,
+      devices: devicesRef,
+    };
+    const target = sectionRefs[preferences.dashboardDefaultTab]?.current;
+    target?.scrollIntoView({ block: 'start', behavior: preferences.reducedMotion ? 'auto' : 'smooth' });
+  }, [preferences.dashboardDefaultTab, preferences.reducedMotion]);
+
   const historyRows = useMemo(() => {
     return history.slice(0, 8).map((entry) => {
       const eventType = entry.event.type || 'None';
@@ -94,12 +109,12 @@ export default function DashboardPage() {
 
       return {
         id: entry._id,
-        timestamp: formatWhen(entry.timestamp, locale),
+        timestamp: `${formatDate(entry.timestamp)} ${formatTime(entry.timestamp)}`,
         event: eventType === 'None' ? `Reading pH ${entry.ph.value.toFixed(2)}, TDS ${entry.tds.value}` : eventType,
         status: severity,
       };
     });
-  }, [history, locale]);
+  }, [formatDate, formatTime, history]);
 
   const rangeCards = useMemo(
     () => ({
@@ -142,22 +157,33 @@ export default function DashboardPage() {
     <div className="min-h-[calc(100vh-64px)] bg-gray-50/70 px-5 py-8 dark:bg-background sm:px-8 sm:py-10">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-7">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0 }}>
-          <div className="mb-6 flex flex-col gap-1">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-blue-500">EauSure · Overview</p>
-            <h1 className="text-2xl font-black tracking-tight text-gray-900 dark:text-foreground">{t('title')}</h1>
-            <p className="mt-0.5 text-xs text-gray-400 dark:text-muted-foreground">
-              {t('title')}: Visualize dashboard, review history, and track performance.
-            </p>
+          <div ref={overviewRef} className="mb-6 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+            <div className="flex flex-col gap-1">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-blue-500">EauSure · Overview</p>
+              <h1 className="text-2xl font-black tracking-tight text-gray-900 dark:text-foreground">{t('title')}</h1>
+              <p className="mt-0.5 text-xs text-gray-400 dark:text-muted-foreground">
+                {t('title')}: Visualize dashboard, review history, and track performance.
+              </p>
+            </div>
+            <div className="min-h-22 min-w-62 rounded-2xl border border-gray-100 bg-white px-5 py-4 shadow-sm dark:border-border dark:bg-card">
+              <TimezoneClockWidget timezone={preferences.timezone} locale={locale} />
+            </div>
           </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span>{source === 'mqtt' ? 'Live source: MQTT' : 'Live source: Polling fallback'}</span>
+            <span>
+              {preferences.sensorRefreshRate === 0
+                ? 'Auto-refresh paused'
+                : source === 'mqtt'
+                  ? 'Live source: MQTT'
+                  : `Refreshing every ${preferences.sensorRefreshRate}s`}
+            </span>
             <Button variant="outline" size="sm" className="active:scale-95 transition-transform duration-100" onClick={() => void refresh()}>
-              Refresh latest
+              {preferences.sensorRefreshRate === 0 ? 'Refresh now' : 'Refresh latest'}
             </Button>
           </div>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.07 }}>
+        <motion.div ref={devicesRef} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.07 }}>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             {[
               {
@@ -236,7 +262,7 @@ export default function DashboardPage() {
 
         {error && <p className="text-sm text-destructive">{error}</p>}
 
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.28 }}>
+        <motion.div ref={liveRef} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.28 }}>
           <Tabs defaultValue="month" className="space-y-4">
             <TabsList className="rounded-xl border border-gray-200 bg-white dark:border-border dark:bg-muted/30">
               <TabsTrigger value="month">Month</TabsTrigger>
@@ -279,7 +305,7 @@ export default function DashboardPage() {
           </Tabs>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.35 }}>
+        <motion.div ref={alertsRef} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.35 }}>
           <div className="relative overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-border dark:bg-card">
 
             <div className="py-5 ps-6 pe-5">

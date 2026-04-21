@@ -7,7 +7,9 @@ import type { Chat } from '@/lib/models/Chat';
 import type { User } from '@/lib/user';
 
 function buildAddress(user: User | null) {
-  return user?.address ? [user.address.street, user.address.city, user.address.country].filter(Boolean).join(', ') : '';
+  if (!user?.address) return '';
+  if (typeof user.address === 'string') return user.address;
+  return [user.address.street, user.address.city, user.address.country].filter(Boolean).join(', ');
 }
 
 export async function GET(req: NextRequest) {

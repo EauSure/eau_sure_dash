@@ -2,6 +2,7 @@
 
 import { SessionProvider } from 'next-auth/react';
 import { ThemeProvider } from 'next-themes';
+import { SettingsSyncProvider } from '@/components/settings-sync-provider';
 
 export default function Providers({
   children,
@@ -16,7 +17,7 @@ export default function Providers({
         enableSystem
         disableTransitionOnChange
       >
-        {children}
+        <SettingsSyncProvider>{children}</SettingsSyncProvider>
       </ThemeProvider>
     </SessionProvider>
   );

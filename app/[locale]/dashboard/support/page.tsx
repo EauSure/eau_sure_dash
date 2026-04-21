@@ -38,6 +38,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { useT } from '@/lib/useT';
 import { isRecentTimestamp, type SerializedChat } from '@/lib/chat';
+import { useDateFormat } from '@/lib/hooks/useDateFormat';
+import { useTimeFormat } from '@/lib/hooks/useTimeFormat';
 import {
   ticketCategories,
   ticketCreateSchema,
@@ -85,6 +87,8 @@ export default function SupportPage() {
   const router = useRouter();
   const locale = useLocale();
   const t = useT('support');
+  const { formatDate: formatPreferenceDate } = useDateFormat();
+  const { formatTime } = useTimeFormat();
   const isRtl = locale === 'ar';
   const [currentView, setCurrentView] = useState<SupportView>('landing');
   const [tickets, setTickets] = useState<UserTicket[]>([]);
@@ -127,11 +131,7 @@ export default function SupportPage() {
     [t]
   );
 
-  const formatDate = (value: string) =>
-    new Intl.DateTimeFormat(locale, {
-      dateStyle: 'medium',
-      timeStyle: 'short',
-    }).format(new Date(value));
+  const formatDate = (value: string) => `${formatPreferenceDate(value)} ${formatTime(value)}`;
 
   const fetchTickets = useCallback(async (force = false) => {
     if (ticketsInFlightRef.current || (!force && ticketsLoadedRef.current)) {

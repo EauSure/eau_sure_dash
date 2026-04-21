@@ -1,238 +1,300 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { toast } from 'sonner';
+import { useEffect, useMemo, useState } from 'react';
 import { useLocale } from 'next-intl';
-import { motion } from 'framer-motion';
-import { useRouter, usePathname } from '@/i18n/routing';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { toast } from 'sonner';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  Accessibility,
+  AlertTriangle,
+  Bell,
+  ChevronDown,
+  Gauge,
+  Lock,
+  MonitorCog,
+  Save,
+  Shield,
+  Volume2,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Separator } from '@/components/ui/separator';
-import { Loader2, Globe, Bell, Gauge, Save, X } from 'lucide-react';
+import { usePathname, useRouter } from '@/i18n/routing';
+import { cn } from '@/lib/utils';
 import { useT } from '@/lib/useT';
-import type { CompleteUserProfile } from '@/types/user-profile';
+import { playAlertTone } from '@/lib/alert-tone';
+import { useDateFormat } from '@/lib/hooks/useDateFormat';
+import { useTimeFormat } from '@/lib/hooks/useTimeFormat';
+import { useUserPreferences } from '@/components/providers/UserPreferencesProvider';
+import type { DashboardPreferences } from '@/types/user-profile';
 
-const settingsFormSchema = z.object({
-  timezone: z.string(),
-  notifications: z.object({
-    emailAlerts: z.boolean(),
-    criticalOnly: z.boolean(),
-    dailySummary: z.boolean(),
-    maintenanceReminders: z.boolean(),
-  }),
-  units: z.object({
-    temperature: z.enum(['celsius', 'fahrenheit']),
-    distance: z.enum(['metric', 'imperial']),
-  }),
-  language: z.string(),
-});
+type SectionKey = 'appearance' | 'alerts' | 'privacy' | 'dashboard' | 'accessibility' | 'danger';
+type PreferencePatch = Partial<DashboardPreferences>;
 
-type SettingsFormValues = z.infer<typeof settingsFormSchema>;
-
-const timezones = [
-  { value: 'Africa/Tunis', label: 'Africa/Tunis (GMT+1)' },
-  { value: 'Europe/Paris', label: 'Europe/Paris (CET)' },
-  { value: 'Europe/London', label: 'Europe/London (GMT)' },
-  { value: 'America/New_York', label: 'America/New York (EST)' },
-  { value: 'America/Los_Angeles', label: 'America/Los Angeles (PST)' },
-  { value: 'Asia/Dubai', label: 'Asia/Dubai (GST)' },
-  { value: 'UTC', label: 'UTC' },
-];
+const timezoneGroups = [
+  { labelKey: 'timezoneRegions.africa', zones: ['Africa/Tunis', 'Africa/Cairo', 'Africa/Casablanca', 'Africa/Lagos'] },
+  { labelKey: 'timezoneRegions.europe', zones: ['Europe/Paris', 'Europe/London', 'Europe/Berlin', 'Europe/Madrid', 'Europe/Rome', 'Europe/Amsterdam'] },
+  { labelKey: 'timezoneRegions.america', zones: ['America/New_York', 'America/Chicago', 'America/Denver', 'America/Los_Angeles', 'America/Toronto', 'America/Sao_Paulo'] },
+  { labelKey: 'timezoneRegions.asia', zones: ['Asia/Dubai', 'Asia/Riyadh', 'Asia/Karachi', 'Asia/Kolkata', 'Asia/Bangkok', 'Asia/Singapore', 'Asia/Tokyo', 'Asia/Shanghai'] },
+  { labelKey: 'timezoneRegions.australiaPacific', zones: ['Australia/Sydney', 'Pacific/Auckland'] },
+  { labelKey: 'timezoneRegions.universal', zones: ['UTC'] },
+] as const;
 
 const languages = [
   { value: 'en', label: 'English' },
   { value: 'fr', label: 'Français' },
   { value: 'ar', label: 'العربية' },
-];
+] as const;
+
+const DEFAULTS = {
+  appearance: {
+    language: 'fr',
+    timezone: 'Africa/Tunis',
+    compactMode: false,
+    sidebarDefaultCollapsed: false,
+    dateFormat: 'DD/MM/YYYY',
+    timeFormat: '24h',
+  },
+  alerts: {
+    notificationsEnabled: false,
+    alertSound: false,
+    alertDisplayThreshold: 'all',
+  },
+  privacy: {
+    sessionTimeout: 60,
+    presenceVisible: true,
+  },
+  dashboard: {
+    sensorRefreshRate: 10,
+    dashboardDefaultTab: 'overview',
+    tempUnit: 'C',
+    volumeUnit: 'L',
+  },
+  accessibility: {
+    reducedMotion: false,
+    highContrast: false,
+    fontSize: 'md',
+  },
+} satisfies Record<string, PreferencePatch>;
+
+function formatTimeZoneOffset(timezone: string) {
+  try {
+    const part = new Intl.DateTimeFormat('en-US', {
+      timeZone: timezone,
+      timeZoneName: 'longOffset',
+    })
+      .formatToParts(new Date())
+      .find((item) => item.type === 'timeZoneName')?.value;
+
+    return part ? part.replace('GMT', 'UTC') : 'UTC+00:00';
+  } catch {
+    return 'UTC+00:00';
+  }
+}
+
+function getSectionPatch(section: Exclude<SectionKey, 'danger'>, draft: DashboardPreferences): PreferencePatch {
+  if (section === 'appearance') {
+    return {
+      language: draft.language,
+      timezone: draft.timezone,
+      compactMode: draft.compactMode,
+      sidebarDefaultCollapsed: draft.sidebarDefaultCollapsed,
+      dateFormat: draft.dateFormat,
+      timeFormat: draft.timeFormat,
+    };
+  }
+  if (section === 'alerts') {
+    return {
+      notificationsEnabled: draft.notificationsEnabled,
+      alertSound: draft.alertSound,
+      alertDisplayThreshold: draft.alertDisplayThreshold,
+    };
+  }
+  if (section === 'privacy') {
+    return {
+      sessionTimeout: draft.sessionTimeout,
+      presenceVisible: draft.presenceVisible,
+    };
+  }
+  if (section === 'dashboard') {
+    return {
+      sensorRefreshRate: draft.sensorRefreshRate,
+      dashboardDefaultTab: draft.dashboardDefaultTab,
+      tempUnit: draft.tempUnit,
+      volumeUnit: draft.volumeUnit,
+    };
+  }
+  return {
+    reducedMotion: draft.reducedMotion,
+    highContrast: draft.highContrast,
+    fontSize: draft.fontSize,
+  };
+}
+
+function hasChanges(patch: PreferencePatch, preferences: DashboardPreferences) {
+  return Object.entries(patch).some(([key, value]) => preferences[key as keyof DashboardPreferences] !== value);
+}
+
+function customizedCount(defaults: PreferencePatch, draft: DashboardPreferences) {
+  return Object.entries(defaults).filter(([key, value]) => draft[key as keyof DashboardPreferences] !== value).length;
+}
+
+function SettingRow({
+  label,
+  description,
+  children,
+}: {
+  label: string;
+  description: string;
+  children: React.ReactNode;
+}) {
+  const { preferences } = useUserPreferences();
+
+  return (
+    <motion.div
+      initial={preferences.reducedMotion ? false : { opacity: 0, y: 8 }}
+      animate={preferences.reducedMotion ? undefined : { opacity: 1, y: 0 }}
+      transition={{ duration: preferences.reducedMotion ? 0 : 0.18, ease: 'easeOut' }}
+      className="flex flex-col gap-3 border-b border-border/60 py-4 last:border-b-0 md:flex-row md:items-center md:justify-between"
+    >
+      <div className="min-w-0">
+        <p className="text-sm font-medium text-foreground">{label}</p>
+        <p className="mt-1 text-xs text-muted-foreground">{description}</p>
+      </div>
+      <div className="flex shrink-0 justify-start md:justify-end">{children}</div>
+    </motion.div>
+  );
+}
+
+function PermissionStatus({ status }: { status: NotificationPermission | 'unsupported' }) {
+  const color =
+    status === 'granted'
+      ? 'bg-emerald-500'
+      : status === 'denied'
+        ? 'bg-red-500'
+        : 'bg-gray-400';
+  return <span className={cn('me-2 inline-block h-2 w-2 rounded-full', color)} />;
+}
 
 export default function SettingsPage() {
   const t = useT('settings');
   const tCommon = useT('common');
-  const currentLocale = useLocale();
-  const { status } = useSession();
+  const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [profile, setProfile] = useState<CompleteUserProfile | null>(null);
-
-  const form = useForm<SettingsFormValues>({
-    resolver: zodResolver(settingsFormSchema),
-    defaultValues: {
-      timezone: 'Africa/Tunis',
-      notifications: {
-        emailAlerts: true,
-        criticalOnly: false,
-        dailySummary: true,
-        maintenanceReminders: true,
-      },
-      units: {
-        temperature: 'celsius',
-        distance: 'metric',
-      },
-      language: currentLocale,
-    },
-  });
-
-  const fetchProfile = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      const response = await fetch('/api/user/me', {
-        method: 'GET',
-        credentials: 'include',
-        cache: 'no-store',
-      });
-
-      if (response.status === 401) {
-        router.push('/auth/signin', { locale: currentLocale });
-        return;
-      }
-
-      if (!response.ok) {
-        const errorPayload = await response.json().catch(() => ({}));
-        const message =
-          typeof errorPayload?.error === 'string'
-            ? errorPayload.error
-            : `HTTP ${response.status}`;
-        throw new Error(message);
-      }
-
-      const data: CompleteUserProfile = await response.json();
-      setProfile(data);
-      
-      // Update form with fetched data
-      form.reset({
-        timezone: data.timezone,
-        notifications: data.preferences.notifications,
-        units: data.preferences.units,
-        language: data.preferences.language,
-      });
-    } catch (error) {
-      console.error('Failed to fetch profile:', error);
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      toast.error(message);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [currentLocale, form, router]);
+  const { preferences, updatePreferences, updatePreference } = useUserPreferences();
+  const { formatDate } = useDateFormat();
+  const { formatTime } = useTimeFormat();
+  const [openSection, setOpenSection] = useState<SectionKey>('appearance');
+  const [savingSection, setSavingSection] = useState<SectionKey | null>(null);
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | 'unsupported'>('unsupported');
+  const [draft, setDraft] = useState<DashboardPreferences>(preferences);
+  const reduceMotion = preferences.reducedMotion;
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push(`/${currentLocale}/auth/signin`);
+    setDraft(preferences);
+  }, [preferences]);
+
+  useEffect(() => {
+    if (!('Notification' in window)) {
+      setNotificationPermission('unsupported');
+      return;
+    }
+    setNotificationPermission(Notification.permission);
+  }, []);
+
+  const timezoneOptions = useMemo(
+    () =>
+      timezoneGroups.map((group) => ({
+        ...group,
+        zones: group.zones.map((zone) => ({
+          value: zone,
+          label: `(${formatTimeZoneOffset(zone)}) ${zone}`,
+        })),
+      })),
+    []
+  );
+
+  const setDraftValue = <K extends keyof DashboardPreferences>(key: K, value: DashboardPreferences[K]) => {
+    setDraft((current) => ({ ...current, [key]: value }));
+  };
+
+  const saveSection = async (section: Exclude<SectionKey, 'danger'>) => {
+    const patch = getSectionPatch(section, draft);
+    setSavingSection(section);
+
+    if (section === 'appearance' && draft.language !== locale) {
+      await fetch('/api/locale', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ locale: draft.language }),
+      });
+    }
+
+    const saved = await updatePreferences(patch);
+    setSavingSection(null);
+
+    if (saved) {
+      toast.success(t('toasts.saved'));
+      if (section === 'appearance' && draft.language !== locale) {
+        router.replace(pathname, { locale: draft.language });
+      }
+    }
+  };
+
+  const handleBrowserNotifications = async (checked: boolean) => {
+    if (!checked) {
+      setDraftValue('notificationsEnabled', false);
+      await updatePreference('notificationsEnabled', false);
       return;
     }
 
-    if (status === 'authenticated') {
-      void fetchProfile();
+    if (!('Notification' in window)) {
+      toast.warning(t('notifications.browserUnsupported'));
+      return;
     }
-  }, [currentLocale, fetchProfile, status, router]);
 
-  const onSubmit = async (values: SettingsFormValues) => {
-    try {
-      setIsSaving(true);
-      
-      const languageChanged = values.language !== currentLocale;
+    const permission = Notification.permission === 'default'
+      ? await Notification.requestPermission()
+      : Notification.permission;
+    setNotificationPermission(permission);
 
-      // Update locale cookie if language changed
-      if (languageChanged) {
-        await fetch('/api/locale', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ locale: values.language }),
-        });
-      }
-
-      const response = await fetch('/api/user/me', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          timezone: values.timezone,
-          preferences: {
-            notifications: values.notifications,
-            units: values.units,
-            language: values.language,
-          },
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update settings');
-      }
-
-      const updatedProfile: CompleteUserProfile = await response.json();
-      setProfile(updatedProfile);
-      
-      // Reset form with updated data to clear dirty state
-      form.reset({
-        timezone: updatedProfile.timezone,
-        notifications: updatedProfile.preferences.notifications,
-        units: updatedProfile.preferences.units,
-        language: updatedProfile.preferences.language,
-      });
-
-      toast.success(tCommon('allChangesSaved'));
-      
-      if (languageChanged) {
-        router.replace(pathname, { locale: values.language });
-      }
-    } catch (error) {
-      console.error('Error updating settings:', error);
-      toast.error('Failed to update settings');
-    } finally {
-      setIsSaving(false);
+    if (permission === 'granted') {
+      setDraftValue('notificationsEnabled', true);
+      await updatePreference('notificationsEnabled', true);
+      toast.success(t('notifications.browserGranted'));
+      return;
     }
+
+    setDraftValue('notificationsEnabled', false);
+    toast.warning(t('notifications.browserDenied'));
   };
 
-  const handleDiscard = () => {
-    if (profile) {
-      form.reset({
-        timezone: profile.timezone,
-        notifications: profile.preferences.notifications,
-        units: profile.preferences.units,
-        language: profile.preferences.language,
-      });
-      toast.info(tCommon('discard'));
-    }
-  };
-
-  if (status === 'loading' || isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-100">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
-
-  const isDirty = form.formState.isDirty;
+  const sections = [
+    { key: 'appearance' as const, icon: MonitorCog, title: t('sections.appearance'), defaults: DEFAULTS.appearance },
+    { key: 'alerts' as const, icon: Bell, title: t('sections.alerts'), defaults: DEFAULTS.alerts },
+    { key: 'privacy' as const, icon: Shield, title: t('sections.privacy'), defaults: DEFAULTS.privacy },
+    { key: 'dashboard' as const, icon: Gauge, title: t('sections.dashboard'), defaults: DEFAULTS.dashboard },
+    { key: 'accessibility' as const, icon: Accessibility, title: t('sections.accessibility'), defaults: DEFAULTS.accessibility },
+    { key: 'danger' as const, icon: Lock, title: t('sections.danger'), defaults: {} },
+  ];
 
   return (
     <div className="min-h-[calc(100vh-64px)] bg-gray-50/70 px-5 py-8 dark:bg-background sm:px-8 sm:py-10">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-7">
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0 }}>
+        <motion.div
+          initial={reduceMotion ? false : { opacity: 0, y: 16 }}
+          animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+          transition={{ duration: reduceMotion ? 0 : 0.3, ease: 'easeOut' }}
+        >
           <div className="mb-6 flex flex-col gap-1">
             <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-blue-500">EauSure · Settings</p>
             <h1 className="text-2xl font-black tracking-tight text-gray-900 dark:text-foreground">{t('title')}</h1>
@@ -240,316 +302,304 @@ export default function SettingsPage() {
           </div>
         </motion.div>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <Tabs defaultValue="regional" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="regional">
-                  <Globe className="h-4 w-4 mr-2" />
-                  {t('tabs.regional')}
-                </TabsTrigger>
-                <TabsTrigger value="notifications">
-                  <Bell className="h-4 w-4 mr-2" />
-                  {t('tabs.notifications')}
-                </TabsTrigger>
-                <TabsTrigger value="units">
-                  <Gauge className="h-4 w-4 mr-2" />
-                  {t('tabs.units')}
-                </TabsTrigger>
-              </TabsList>
+        <motion.div
+          initial={reduceMotion ? false : 'hidden'}
+          animate={reduceMotion ? undefined : 'show'}
+          variants={{
+            hidden: {},
+            show: {
+              transition: {
+                staggerChildren: 0.045,
+              },
+            },
+          }}
+          className="space-y-4"
+        >
+          {sections.map((section, index) => {
+            const Icon = section.icon;
+            const isOpen = openSection === section.key;
+            const isDanger = section.key === 'danger';
+            const sectionPatch = isDanger ? {} : getSectionPatch(section.key, draft);
+            const dirty = !isDanger && hasChanges(sectionPatch, preferences);
+            const count = customizedCount(section.defaults, draft);
 
-              {/* Regional Settings Tab */}
-              <TabsContent value="regional" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Globe className="h-5 w-5 text-muted-foreground" />
-                      {t('regional.title')}
-                    </CardTitle>
-                    <CardDescription>
-                      {t('regional.description')}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <FormField
-                      control={form.control}
-                      name="timezone"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{t('regional.timezone')}</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder={t('regional.timezone')} />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {timezones.map((tz) => (
-                                <SelectItem key={tz.value} value={tz.value}>
-                                  {tz.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormDescription>
-                            {t('regional.timezoneDescription')}
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <Separator />
-
-                    <FormField
-                      control={form.control}
-                      name="language"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{t('regional.language')}</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder={t('regional.language')} />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {languages.map((lang) => (
-                                <SelectItem key={lang.value} value={lang.value}>
-                                  {lang.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormDescription>
-                            {t('regional.languageDescription')}
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              {/* Notifications Tab */}
-              <TabsContent value="notifications" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Bell className="h-5 w-5 text-muted-foreground" />
-                      {t('notifications.title')}
-                    </CardTitle>
-                    <CardDescription>
-                      {t('notifications.description')}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="notifications.emailAlerts"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border border-border bg-card p-4 shadow-sm">
-                          <div className="space-y-0.5">
-                            <FormLabel className="text-base font-medium">{t('notifications.emailAlerts')}</FormLabel>
-                            <FormDescription className="text-sm">
-                              {t('notifications.emailAlertsDescription')}
-                            </FormDescription>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="notifications.criticalOnly"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border border-border bg-card p-4 shadow-sm">
-                          <div className="space-y-0.5">
-                            <FormLabel className="text-base font-medium">{t('notifications.criticalOnly')}</FormLabel>
-                            <FormDescription className="text-sm">
-                              {t('notifications.criticalOnlyDescription')}
-                            </FormDescription>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-
-                    <Separator />
-
-                    <FormField
-                      control={form.control}
-                      name="notifications.dailySummary"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border border-border bg-card p-4 shadow-sm">
-                          <div className="space-y-0.5">
-                            <FormLabel className="text-base font-medium">{t('notifications.dailySummary')}</FormLabel>
-                            <FormDescription className="text-sm">
-                              {t('notifications.dailySummaryDescription')}
-                            </FormDescription>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="notifications.maintenanceReminders"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border border-border bg-card p-4 shadow-sm">
-                          <div className="space-y-0.5">
-                            <FormLabel className="text-base font-medium">{t('notifications.maintenanceReminders')}</FormLabel>
-                            <FormDescription className="text-sm">
-                              {t('notifications.maintenanceRemindersDescription')}
-                            </FormDescription>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              {/* Units Tab */}
-              <TabsContent value="units" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Gauge className="h-5 w-5 text-muted-foreground" />
-                      {t('units.title')}
-                    </CardTitle>
-                    <CardDescription>
-                      {t('units.description')}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="grid gap-6 md:grid-cols-2">
-                      <FormField
-                        control={form.control}
-                        name="units.temperature"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>{t('units.temperature')}</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="celsius">Celsius (°C)</SelectItem>
-                                <SelectItem value="fahrenheit">Fahrenheit (°F)</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormDescription>
-                              {t('units.temperatureDescription')}
-                            </FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="units.distance"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>{t('units.distance')}</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="metric">Metric (m, km)</SelectItem>
-                                <SelectItem value="imperial">Imperial (ft, mi)</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormDescription>
-                              {t('units.distanceDescription')}
-                            </FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <Separator />
-
-                    <div className="rounded-lg bg-muted/50 p-4 text-sm text-muted-foreground">
-                      <p className="font-medium text-foreground mb-1">{t('units.note')}</p>
-                      <p>{t('units.noteText')}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
-
-            {/* Action Bar */}
-            <Card className="relative overflow-hidden border border-gray-100 shadow-sm dark:border-border">
-              <CardContent className="pt-6">
-                <div className="flex flex-col items-center justify-center gap-4">
-                  <div className="text-center space-y-1">
-                    <p className="text-sm font-medium">
-                      {isDirty ? tCommon('unsavedChanges') : tCommon('allChangesSaved')}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {isDirty 
-                        ? t('actionBar.unsavedMessage')
-                        : t('actionBar.savedMessage')
-                      }
-                    </p>
-                  </div>
-                  <div className="flex gap-3">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="active:scale-95 transition-transform duration-100"
-                      onClick={handleDiscard}
-                      disabled={!isDirty || isSaving}
+            return (
+              <motion.section
+                key={section.key}
+                layout={reduceMotion ? false : 'position'}
+                variants={{
+                  hidden: { opacity: 0, y: 14 },
+                  show: { opacity: 1, y: 0 },
+                }}
+                transition={{ duration: reduceMotion ? 0 : 0.22, ease: 'easeOut' }}
+                whileHover={reduceMotion ? undefined : { y: -1 }}
+                className="overflow-hidden rounded-lg border border-border bg-card shadow-sm"
+              >
+                <button
+                  type="button"
+                  className="group flex w-full items-center justify-between gap-4 border-s-4 border-s-primary px-5 py-4 text-start transition-colors duration-150 hover:bg-muted/35"
+                  onClick={() => setOpenSection(isOpen ? 'appearance' : section.key)}
+                >
+                  <span className="flex min-w-0 items-center gap-3">
+                    <motion.span
+                      initial={false}
+                      animate={reduceMotion ? undefined : { scale: isOpen ? 1.08 : 1 }}
+                      transition={{ duration: reduceMotion ? 0 : 0.18 }}
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary"
                     >
-                      <X className="me-2 h-4 w-4" />
-                      {tCommon('discard')}
-                    </Button>
-                    <Button type="submit" className="active:scale-95 transition-transform duration-100" disabled={!isDirty || isSaving}>
-                      {isSaving ? (
-                        <Loader2 className="me-2 h-4 w-4 animate-spin" />
-                      ) : (
-                        <Save className="me-2 h-4 w-4" />
-                      )}
-                      {tCommon('save')}
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </form>
-        </Form>
+                      <Icon className="h-5 w-5" />
+                    </motion.span>
+                    <span className="min-w-0">
+                      <span className="block text-sm font-semibold text-foreground">{section.title}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {section.title} · {count} {t(count === 1 ? 'customizedSingular' : 'customizedPlural')}
+                        {dirty ? ` · ${t('unsaved')}` : ''}
+                      </span>
+                    </span>
+                  </span>
+                  <motion.span
+                    initial={false}
+                    animate={reduceMotion ? undefined : { rotate: isOpen ? 180 : 0 }}
+                    transition={{ duration: reduceMotion ? 0 : 0.2, ease: 'easeOut' }}
+                    className="shrink-0"
+                  >
+                    <ChevronDown className="h-4 w-4" />
+                  </motion.span>
+                </button>
+
+                <AnimatePresence initial={false}>
+                  {isOpen && (
+                    <motion.div
+                      key={`${section.key}-content-${index}`}
+                      initial={reduceMotion ? false : { height: 0, opacity: 0 }}
+                      animate={reduceMotion ? undefined : { height: 'auto', opacity: 1 }}
+                      exit={reduceMotion ? undefined : { height: 0, opacity: 0 }}
+                      transition={{ duration: reduceMotion ? 0 : 0.24, ease: 'easeOut' }}
+                      className="overflow-hidden"
+                    >
+                      <motion.div
+                        initial={reduceMotion ? false : { y: -6 }}
+                        animate={reduceMotion ? undefined : { y: 0 }}
+                        exit={reduceMotion ? undefined : { y: -4 }}
+                        transition={{ duration: reduceMotion ? 0 : 0.2, ease: 'easeOut' }}
+                        className="px-5 pb-5"
+                      >
+                    {section.key === 'appearance' && (
+                      <>
+                        <SettingRow label={t('regional.language')} description={t('regional.languageDescription')}>
+                          <Select value={draft.language} onValueChange={(value) => setDraftValue('language', value)}>
+                            <SelectTrigger className="w-52"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              {languages.map((language) => <SelectItem key={language.value} value={language.value}>{language.label}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        </SettingRow>
+                        <SettingRow label={t('timezone')} description={t('regional.timezoneDescription')}>
+                          <Select value={draft.timezone} onValueChange={(value) => setDraftValue('timezone', value)}>
+                            <SelectTrigger className="w-72"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              {timezoneOptions.map((group) => (
+                                <SelectGroup key={group.labelKey}>
+                                  <SelectLabel>{t(group.labelKey)}</SelectLabel>
+                                  {group.zones.map((zone) => <SelectItem key={zone.value} value={zone.value}>{zone.label}</SelectItem>)}
+                                </SelectGroup>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </SettingRow>
+                        <SettingRow label={t('appearance.compactMode')} description={t('appearance.compactModeDescription')}>
+                          <Switch checked={draft.compactMode} onCheckedChange={(value) => setDraftValue('compactMode', value)} />
+                        </SettingRow>
+                        <SettingRow label={t('appearance.sidebarDefaultCollapsed')} description={t('appearance.sidebarDefaultCollapsedDescription')}>
+                          <Switch checked={draft.sidebarDefaultCollapsed} onCheckedChange={(value) => setDraftValue('sidebarDefaultCollapsed', value)} />
+                        </SettingRow>
+                        <SettingRow label={t('appearance.dateFormat')} description={t('appearance.dateFormatDescription')}>
+                          <Select value={draft.dateFormat} onValueChange={(value) => setDraftValue('dateFormat', value as DashboardPreferences['dateFormat'])}>
+                            <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="DD/MM/YYYY">DD/MM/YYYY</SelectItem>
+                              <SelectItem value="MM/DD/YYYY">MM/DD/YYYY</SelectItem>
+                              <SelectItem value="YYYY-MM-DD">YYYY-MM-DD</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </SettingRow>
+                        <SettingRow label={t('appearance.timeFormat')} description={t('appearance.timeFormatDescription')}>
+                          <Switch checked={draft.timeFormat === '24h'} onCheckedChange={(value) => setDraftValue('timeFormat', value ? '24h' : '12h')} />
+                        </SettingRow>
+                      </>
+                    )}
+
+                    {section.key === 'alerts' && (
+                      <>
+                        <SettingRow label={t('notifications.browserNotifications')} description={t('notifications.browserNotificationsDescription')}>
+                          <div className="flex items-center gap-3">
+                            <span className="text-xs text-muted-foreground">
+                              <PermissionStatus status={notificationPermission} />
+                              {t(`notifications.permission.${notificationPermission}`)}
+                            </span>
+                            <Switch checked={draft.notificationsEnabled} onCheckedChange={(value) => void handleBrowserNotifications(value)} />
+                          </div>
+                        </SettingRow>
+                        <SettingRow label={t('notifications.alertSound')} description={t('notifications.alertSoundDescription')}>
+                          <div className="flex items-center gap-2">
+                            <Button type="button" variant="outline" size="sm" onClick={playAlertTone}>
+                              <Volume2 className="me-2 h-4 w-4" />
+                              {t('notifications.testSound')}
+                            </Button>
+                            <Switch checked={draft.alertSound} onCheckedChange={(value) => setDraftValue('alertSound', value)} />
+                          </div>
+                        </SettingRow>
+                        <SettingRow label={t('notifications.alertThreshold')} description={t('notifications.alertThresholdDescription')}>
+                          <Select value={draft.alertDisplayThreshold} onValueChange={(value) => setDraftValue('alertDisplayThreshold', value as DashboardPreferences['alertDisplayThreshold'])}>
+                            <SelectTrigger className="w-52"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">{t('notifications.thresholds.all')}</SelectItem>
+                              <SelectItem value="medium">{t('notifications.thresholds.medium')}</SelectItem>
+                              <SelectItem value="high">{t('notifications.thresholds.high')}</SelectItem>
+                              <SelectItem value="critical">{t('notifications.thresholds.critical')}</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </SettingRow>
+                      </>
+                    )}
+
+                    {section.key === 'privacy' && (
+                      <>
+                        <SettingRow label={t('privacy.sessionTimeout')} description={t('privacy.sessionTimeoutDescription')}>
+                          <Select value={String(draft.sessionTimeout)} onValueChange={(value) => setDraftValue('sessionTimeout', Number(value))}>
+                            <SelectTrigger className="w-56"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="30">{t('privacy.timeout.30')}</SelectItem>
+                              <SelectItem value="60">{t('privacy.timeout.60')}</SelectItem>
+                              <SelectItem value="120">{t('privacy.timeout.120')}</SelectItem>
+                              <SelectItem value="240">{t('privacy.timeout.240')}</SelectItem>
+                              <SelectItem value="0">{t('privacy.timeout.never')}</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </SettingRow>
+                        {draft.sessionTimeout === 0 && (
+                          <div className="mb-2 flex items-center gap-2 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">
+                            <AlertTriangle className="h-4 w-4" />
+                            {t('privacy.neverWarning')}
+                          </div>
+                        )}
+                        <SettingRow label={t('privacy.presenceVisible')} description={t('privacy.presenceVisibleDescription')}>
+                          <Switch checked={draft.presenceVisible} onCheckedChange={(value) => setDraftValue('presenceVisible', value)} />
+                        </SettingRow>
+                        <div className="py-4">
+                          <p className="text-sm font-medium text-foreground">{t('privacy.loginHistory')}</p>
+                          <p className="mt-1 text-xs text-muted-foreground">{t('privacy.loginHistoryDescription')}</p>
+                          <div className="mt-3 space-y-2">
+                            {draft.loginHistory.length === 0 ? (
+                              <p className="text-xs text-muted-foreground">{t('privacy.noLoginHistory')}</p>
+                            ) : draft.loginHistory.slice(0, 5).map((entry, index) => (
+                              <div key={`${entry.timestamp}-${index}`} className="flex items-center justify-between rounded-md border border-border px-3 py-2 text-xs">
+                                <span>{formatDate(entry.timestamp)} {formatTime(entry.timestamp)}</span>
+                                <span className="text-muted-foreground">{entry.timezone}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    {section.key === 'dashboard' && (
+                      <>
+                        <SettingRow label={t('dashboardBehavior.refreshRate')} description={t('dashboardBehavior.refreshRateDescription')}>
+                          <Select value={String(draft.sensorRefreshRate)} onValueChange={(value) => setDraftValue('sensorRefreshRate', Number(value))}>
+                            <SelectTrigger className="w-52"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="5">{t('dashboardBehavior.refresh.5')}</SelectItem>
+                              <SelectItem value="10">{t('dashboardBehavior.refresh.10')}</SelectItem>
+                              <SelectItem value="30">{t('dashboardBehavior.refresh.30')}</SelectItem>
+                              <SelectItem value="0">{t('dashboardBehavior.refresh.manual')}</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </SettingRow>
+                        <SettingRow label={t('dashboardBehavior.defaultTab')} description={t('dashboardBehavior.defaultTabDescription')}>
+                          <Select value={draft.dashboardDefaultTab} onValueChange={(value) => setDraftValue('dashboardDefaultTab', value as DashboardPreferences['dashboardDefaultTab'])}>
+                            <SelectTrigger className="w-52"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="overview">{t('dashboardBehavior.tabs.overview')}</SelectItem>
+                              <SelectItem value="live">{t('dashboardBehavior.tabs.live')}</SelectItem>
+                              <SelectItem value="alerts">{t('dashboardBehavior.tabs.alerts')}</SelectItem>
+                              <SelectItem value="devices">{t('dashboardBehavior.tabs.devices')}</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </SettingRow>
+                        <SettingRow label={t('units.temperature')} description={t('units.temperatureDescription')}>
+                          <Select value={draft.tempUnit} onValueChange={(value) => setDraftValue('tempUnit', value as DashboardPreferences['tempUnit'])}>
+                            <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="C">{t('units.celsius')}</SelectItem>
+                              <SelectItem value="F">{t('units.fahrenheit')}</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </SettingRow>
+                        <SettingRow label={t('units.volume')} description={t('units.volumeDescription')}>
+                          <Select value={draft.volumeUnit} onValueChange={(value) => setDraftValue('volumeUnit', value as DashboardPreferences['volumeUnit'])}>
+                            <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="L">{t('units.liters')}</SelectItem>
+                              <SelectItem value="gal">{t('units.gallons')}</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </SettingRow>
+                      </>
+                    )}
+
+                    {section.key === 'accessibility' && (
+                      <>
+                        <SettingRow label={t('accessibility.reducedMotion')} description={t('accessibility.reducedMotionDescription')}>
+                          <Switch checked={draft.reducedMotion} onCheckedChange={(value) => setDraftValue('reducedMotion', value)} />
+                        </SettingRow>
+                        <SettingRow label={t('accessibility.highContrast')} description={t('accessibility.highContrastDescription')}>
+                          <Switch checked={draft.highContrast} onCheckedChange={(value) => setDraftValue('highContrast', value)} />
+                        </SettingRow>
+                        <SettingRow label={t('accessibility.fontSize')} description={t('accessibility.fontSizeDescription')}>
+                          <Select value={draft.fontSize} onValueChange={(value) => setDraftValue('fontSize', value as DashboardPreferences['fontSize'])}>
+                            <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="sm">{t('accessibility.font.sm')}</SelectItem>
+                              <SelectItem value="md">{t('accessibility.font.md')}</SelectItem>
+                              <SelectItem value="lg">{t('accessibility.font.lg')}</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </SettingRow>
+                      </>
+                    )}
+
+                    {section.key === 'danger' ? (
+                      <div className="py-4">
+                        <p className="text-sm font-medium text-foreground">{t('danger.password')}</p>
+                        <p className="mt-1 text-xs text-muted-foreground">{t('danger.passwordDescription')}</p>
+                        <Button className="mt-4" variant="outline" onClick={() => router.push('/auth/forgot-password', { locale })}>
+                          <Lock className="me-2 h-4 w-4" />
+                          {t('danger.passwordLink')}
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="mt-5 flex justify-end">
+                        <motion.div whileTap={reduceMotion ? undefined : { scale: 0.98 }}>
+                          <Button
+                          type="button"
+                          disabled={!dirty || savingSection === section.key}
+                          onClick={() => void saveSection(section.key)}
+                        >
+                          <Save className="me-2 h-4 w-4" />
+                          {savingSection === section.key ? tCommon('loading') : tCommon('save')}
+                          </Button>
+                        </motion.div>
+                      </div>
+                    )}
+                      </motion.div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.section>
+            );
+          })}
+        </motion.div>
       </div>
     </div>
   );

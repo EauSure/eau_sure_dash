@@ -1,6 +1,7 @@
 'use client';
 
 import { useHeartbeat } from '@/hooks/useHeartbeat';
+import { useIdleTimeout } from '@/lib/hooks/useIdleTimeout';
 
 export default function HeartbeatProvider({
   children,
@@ -8,5 +9,6 @@ export default function HeartbeatProvider({
   children: React.ReactNode;
 }) {
   useHeartbeat();
+  useIdleTimeout();
   return <>{children}</>;
 }
