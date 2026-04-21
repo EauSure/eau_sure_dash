@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, type ReactNode, useEffect, useMemo, useState } from 'react';
+import { Fragment, type ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useLocale } from 'next-intl';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -155,7 +155,7 @@ export default function ManageUsersPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isActionLoading, setIsActionLoading] = useState(false);
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -180,19 +180,19 @@ export default function ManageUsersPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    void fetchUsers();
+  }, [fetchUsers]);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      fetchUsers();
-    }, 15000);
+      void fetchUsers();
+    }, 30000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchUsers]);
 
   const filteredUsers = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();

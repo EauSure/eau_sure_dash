@@ -1,8 +1,7 @@
 import { ObjectId } from 'mongodb';
-import { getToken } from 'next-auth/jwt';
 import { NextRequest, NextResponse } from 'next/server';
 import { getClient } from '@/lib/mongodb';
-import { requireAdminContext } from '@/lib/server-auth';
+import { requireAdminContext, requireOperatorContext } from '@/lib/server-auth';
 import { getUserByEmail } from '@/lib/user';
 import type { Ticket } from '@/lib/models/Ticket';
 import {
@@ -104,29 +103,35 @@ function buildTextSearch(search: string | null) {
   };
 }
 
-async function resolveCurrentUser(token: Awaited<ReturnType<typeof getToken>>) {
-  const tokenPayload = token && typeof token === 'object' ? token : null;
-  const email = typeof tokenPayload?.email === 'string' ? tokenPayload.email : null;
+async function resolveCurrentUser(email: string, tokenUserId: string | null, tokenName: string | null) {
   if (!email) {
     return null;
   }
 
   const userFromDb = await getUserByEmail(email);
-  const userId = parseObjectId(typeof tokenPayload?.id === 'string' ? tokenPayload.id : null) ?? userFromDb?._id ?? null;
+  const userId = parseObjectId(tokenUserId) ?? userFromDb?._id ?? null;
 
   return {
     email,
     name:
-      typeof tokenPayload?.name === 'string' && tokenPayload.name.trim()
-        ? tokenPayload.name
+      tokenName && tokenName.trim()
+        ? tokenName
         : userFromDb?.name ?? email,
     userId,
   };
 }
 
 export async function POST(req: NextRequest) {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-  const currentUser = await resolveCurrentUser(token);
+  const auth = await requireOperatorContext(req);
+  if (!auth) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+
+  const currentUser = await resolveCurrentUser(
+    auth.email,
+    auth.userId,
+    typeof auth.token.name === 'string' ? auth.token.name : null
+  );
 
   if (!currentUser?.email || !currentUser.userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

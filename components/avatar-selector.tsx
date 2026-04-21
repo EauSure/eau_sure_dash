@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+/* eslint-disable @next/next/no-img-element */
+
+import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,10 +16,6 @@ interface AvatarSelectorProps {
   onAvatarChange: (url: string) => void;
 }
 
-const AVATAR_STYLES = [
-  'glass',
-];
-
 const generateDiceBearUrl = (style: string, seed: string, variant?: number): string => {
   const baseUrl = `https://api.dicebear.com/9.x/${style}/svg?seed=${encodeURIComponent(seed)}`;
   return variant !== undefined ? `${baseUrl}&variant=${variant}` : baseUrl;
@@ -30,24 +27,14 @@ export function AvatarSelector({ currentAvatar, userName, onAvatarChange }: Avat
   const [selectedAvatar, setSelectedAvatar] = useState(currentAvatar || '');
 
   // Generate suggested avatars based on user name (12 glass variants)
-  const suggestedAvatars = Array.from({ length: 12 }, (_, i) => ({
-    id: `glass-${i}`,
-    url: generateDiceBearUrl('glass', `${userName || 'user'}-${i}`),
-    style: `glass-${i + 1}`,
-  }));
-
-  useEffect(() => {
-    // Determine which tab to show based on current avatar
-    const isSuggestedAvatar = suggestedAvatars.some((avatar) => avatar.url === currentAvatar);
-    if (isSuggestedAvatar) {
-      setSelectedTab('suggested');
-      setSelectedAvatar(currentAvatar);
-    } else if (currentAvatar) {
-      setSelectedTab('custom');
-      setCustomUrl(currentAvatar);
-      setSelectedAvatar(currentAvatar);
-    }
-  }, [currentAvatar]);
+  const suggestedAvatars = useMemo(
+    () => Array.from({ length: 12 }, (_, i) => ({
+      id: `glass-${i}`,
+      url: generateDiceBearUrl('glass', `${userName || 'user'}-${i}`),
+      style: `glass-${i + 1}`,
+    })),
+    [userName]
+  );
 
   const handleSuggestedSelect = (url: string) => {
     console.log('Avatar selected:', url);

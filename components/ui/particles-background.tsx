@@ -9,33 +9,15 @@ import { useTheme } from 'next-themes';
 // Debug mode: set to true to make particles highly visible
 const DEBUG = false;
 
-/**
- * Converts CSS color variable to hex
- * Reads from computed styles to respect theme changes
- */
-function getCSSVariableColor(variable: string): string {
-  if (typeof window === 'undefined') return '#000000';
-  
-  const style = getComputedStyle(document.documentElement);
-  const value = style.getPropertyValue(variable).trim();
-  
-  // If it's already a hex color, return it
-  if (value.startsWith('#')) return value;
-  
-  // Handle oklch format: oklch(L C H)
-  if (value.startsWith('oklch(')) {
-    // For simplicity, map oklch to approximate hex values
-    // In production, you'd want a proper oklch->rgb converter
-    // For now, we'll use theme-aware fallbacks
-    return '#3b82f6'; // Default blue
-  }
-  
-  return value || '#3b82f6';
-}
-
 export function ParticlesBackground() {
   const [init, setInit] = useState(false);
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(() => {
+    if (typeof window === 'undefined') {
+      return false;
+    }
+
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  });
   const [colors, setColors] = useState({
     primary: '#3b82f6',
     muted: '#94a3b8',
@@ -54,7 +36,6 @@ export function ParticlesBackground() {
   // Check for reduced motion preference
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setPrefersReducedMotion(mediaQuery.matches);
 
     const handleChange = (e: MediaQueryListEvent) => {
       setPrefersReducedMotion(e.matches);
@@ -69,8 +50,6 @@ export function ParticlesBackground() {
     if (typeof window === 'undefined') return;
 
     const updateColors = () => {
-      const style = getComputedStyle(document.documentElement);
-      
       // For oklch colors, we'll use sensible defaults based on theme
       const isDark = resolvedTheme === 'dark';
       

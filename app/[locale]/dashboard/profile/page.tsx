@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useSession } from 'next-auth/react';
 import { useRouter, useParams } from 'next/navigation';
@@ -8,7 +8,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -22,7 +22,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Loader2, User as UserIcon } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import type { CompleteUserProfile } from '@/types/user-profile';
 import { AvatarSelector } from '@/components/avatar-selector';
 import { PhoneInput } from '@/components/ui/phone-input';
@@ -40,7 +40,7 @@ const profileFormSchema = z.object({
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 export default function ProfilePage() {
-  const { data: session, status, update } = useSession();
+  const { status, update } = useSession();
   const router = useRouter();
   const params = useParams<{ locale?: string | string[] }>();
   const t = useT('profile');
@@ -65,18 +65,7 @@ export default function ProfilePage() {
     ? (params.locale[0] ?? 'fr')
     : (params?.locale ?? 'fr');
 
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push(`/${locale}/auth/signin`);
-      return;
-    }
-
-    if (status === 'authenticated') {
-      fetchProfile();
-    }
-  }, [locale, status, router]);
-
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     try {
       setIsLoading(true);
       const response = await fetch('/api/user/me', {
@@ -118,7 +107,18 @@ export default function ProfilePage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [form, locale, router]);
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push(`/${locale}/auth/signin`);
+      return;
+    }
+
+    if (status === 'authenticated') {
+      void fetchProfile();
+    }
+  }, [fetchProfile, locale, status, router]);
 
   const onSubmit = async (values: ProfileFormValues) => {
     try {

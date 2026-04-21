@@ -1,12 +1,17 @@
 import { getToken } from 'next-auth/jwt';
 import { NextRequest, NextResponse } from 'next/server';
+import { sessionCookieName } from '@/lib/session-cookie';
 import { updateUserPresenceByEmail, updateUserPresenceById } from '@/lib/user';
 
 const ONLINE_STATUS = 'online';
 const AWAY_STATUS = 'away';
 
 export async function POST(req: NextRequest) {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+  const token = await getToken({
+    req,
+    secret: process.env.NEXTAUTH_SECRET,
+    cookieName: sessionCookieName,
+  });
   const email = typeof token?.email === 'string' ? token.email : null;
   const userId = typeof token?.id === 'string' ? token.id : null;
 

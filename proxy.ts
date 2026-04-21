@@ -1,11 +1,17 @@
 import { getToken } from 'next-auth/jwt';
 import { NextRequest, NextResponse } from 'next/server';
 import { isSameOriginRequest } from '@/lib/csrf';
+import { sessionCookieName } from '@/lib/session-cookie';
 
-const locales = ['en', 'fr', 'ar'] as const;
+const locales = ['fr', 'en', 'ar'] as const;
 const defaultLocale = 'fr';
-const adminDefaultLocale = 'fr';
+
 const PUBLIC_PATHS = [
+  '/signin',
+  '/signup',
+  '/forgot-password',
+  '/forget-password',
+  '/reset-password',
   '/auth/signin',
   '/auth/signup',
   '/auth/forgot-password',
@@ -19,18 +25,13 @@ const PUBLIC_PATHS = [
   '/api/locale',
   '/_next',
   '/favicon.ico',
-  '/public',
 ] as const;
 
-function getLocaleFromPath(pathname: string): string | null {
+function getLocaleFromPath(pathname: string): (typeof locales)[number] | null {
   const firstSegment = pathname.split('/')[1];
   return locales.includes(firstSegment as (typeof locales)[number])
-    ? firstSegment
+    ? (firstSegment as (typeof locales)[number])
     : null;
-}
-
-function isValidLocale(locale: string | null | undefined): locale is typeof locales[number] {
-  return !!locale && locales.includes(locale as (typeof locales)[number]);
 }
 
 function stripLocalePrefix(pathname: string): string {
@@ -43,131 +44,199 @@ function stripLocalePrefix(pathname: string): string {
   return stripped.startsWith('/') ? stripped : `/${stripped}`;
 }
 
-function isAdminAreaPath(pathname: string): boolean {
-  const localizedPath = stripLocalePrefix(pathname);
-  return localizedPath === '/admin' || localizedPath.startsWith('/admin/');
-}
-
-function hasRoutePrefix(pathname: string, prefix: string): boolean {
-  return pathname === prefix || pathname.startsWith(`${prefix}/`);
+function isStaticAsset(pathname: string): boolean {
+  return /\/[^/]+\.[^/]+$/.test(pathname);
 }
 
 function isPublicPath(pathname: string): boolean {
-  const withoutLocale = pathname.replace(/^\/(fr|en|ar)(?=\/|$)/, '') || '/';
+  if (isStaticAsset(pathname)) {
+    return true;
+  }
+
+  const withoutLocale = stripLocalePrefix(pathname);
+  const hasLocalePrefix = Boolean(getLocaleFromPath(pathname));
+
+  if (hasLocalePrefix && withoutLocale === '/') {
+    return true;
+  }
 
   return PUBLIC_PATHS.some((publicPath) => {
     return (
       withoutLocale === publicPath ||
       withoutLocale.startsWith(`${publicPath}/`) ||
-      pathname.startsWith(publicPath)
+      pathname === publicPath ||
+      pathname.startsWith(`${publicPath}/`)
     );
   });
+}
+
+function isPublicApiPath(pathname: string): boolean {
+  const withoutLocale = stripLocalePrefix(pathname);
+
+  return [
+    '/api/auth',
+    '/api/signup',
+    '/api/forgot-password',
+    '/api/reset-password',
+    '/api/locale',
+  ].some((publicPath) => {
+    return withoutLocale === publicPath || withoutLocale.startsWith(`${publicPath}/`);
+  });
+}
+
+function isAdminAreaPath(pathname: string): boolean {
+  const localizedPath = stripLocalePrefix(pathname);
+  return localizedPath === '/admin' || localizedPath.startsWith('/admin/');
+}
+
+function isOperatorAreaPath(pathname: string): boolean {
+  const localizedPath = stripLocalePrefix(pathname);
+  return localizedPath === '/dashboard' || localizedPath.startsWith('/dashboard/');
+}
+
+function isAuthPath(pathname: string): boolean {
+  const localizedPath = stripLocalePrefix(pathname);
+
+  return [
+    '/signin',
+    '/signup',
+    '/forgot-password',
+    '/forget-password',
+    '/reset-password',
+    '/auth/signin',
+    '/auth/signup',
+    '/auth/forgot-password',
+    '/auth/forget-password',
+    '/auth/reset-password',
+    '/admin/signin',
+  ].includes(localizedPath);
+}
+
+function resolveLocale(request: NextRequest): (typeof locales)[number] {
+  const pathLocale = getLocaleFromPath(request.nextUrl.pathname);
+  const cookieLocale = request.cookies.get('NEXT_LOCALE')?.value;
+
+  if (pathLocale) {
+    return pathLocale;
+  }
+
+  if (locales.includes(cookieLocale as (typeof locales)[number])) {
+    return cookieLocale as (typeof locales)[number];
+  }
+
+  return defaultLocale;
+}
+
+function getPreferredLocale(request: NextRequest): (typeof locales)[number] {
+  const cookieLocale = request.cookies.get('NEXT_LOCALE')?.value;
+
+  if (locales.includes(cookieLocale as (typeof locales)[number])) {
+    return cookieLocale as (typeof locales)[number];
+  }
+
+  return defaultLocale;
 }
 
 async function fingerprintFromUserAgent(userAgent: string): Promise<string> {
   const encoded = new TextEncoder().encode(userAgent);
   const digest = await crypto.subtle.digest('SHA-256', encoded);
+
   return Array.from(new Uint8Array(digest))
     .slice(0, 8)
     .map((byte) => byte.toString(16).padStart(2, '0'))
     .join('');
 }
 
-export default async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  const debugToken = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
+function redirectToSignIn(request: NextRequest, locale: string): NextResponse {
+  const signInPath = isAdminAreaPath(request.nextUrl.pathname)
+    ? `/${locale}/admin/signin`
+    : `/${locale}/auth/signin`;
+  const signInUrl = new URL(signInPath, request.url);
+  signInUrl.searchParams.set('callbackUrl', request.url);
 
-  // Step 1: Always bypass public paths before any redirect logic.
-  if (isPublicPath(pathname)) {
+  return NextResponse.redirect(signInUrl);
+}
+
+function clearSessionCookie(response: NextResponse): NextResponse {
+  response.cookies.delete(sessionCookieName);
+  return response;
+}
+
+export async function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  if (isStaticAsset(pathname)) {
     return NextResponse.next();
   }
 
   if (pathname.startsWith('/api/')) {
-    if (request.method === 'POST' && !isSameOriginRequest(request)) {
+    if (!isPublicApiPath(pathname) && request.method === 'POST' && !isSameOriginRequest(request)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     return NextResponse.next();
   }
 
-  let locale = getLocaleFromPath(pathname);
-  const userLocaleCookie = request.cookies.get('NEXT_LOCALE')?.value;
-  const adminLocaleCookie = request.cookies.get('NEXT_LOCALE_ADMIN')?.value;
-  const adminPath = isAdminAreaPath(pathname);
+  if (!getLocaleFromPath(pathname)) {
+    const preferredLocale = getPreferredLocale(request);
+    const prefixedPath = pathname === '/' ? `/${preferredLocale}` : `/${preferredLocale}${pathname}`;
 
-  if (!locale) {
-    const preferredLocale = adminPath
-      ? adminLocaleCookie || adminDefaultLocale
-      : userLocaleCookie || defaultLocale;
-
-    if (isValidLocale(preferredLocale)) {
-      const prefixedPath = pathname === '/' ? `/${preferredLocale}` : `/${preferredLocale}${pathname}`;
-      return NextResponse.redirect(new URL(prefixedPath, request.url));
-    }
-    locale = adminPath ? adminDefaultLocale : defaultLocale;
+    return NextResponse.redirect(new URL(prefixedPath, request.url));
   }
 
-  const token = debugToken;
+  const locale = resolveLocale(request);
+  const token = await getToken({
+    req: request,
+    secret: process.env.NEXTAUTH_SECRET,
+    cookieName: sessionCookieName,
+  });
 
-  // Step 4: Not authenticated -> route to the appropriate sign-in page.
-  if (!token) {
-    const localizedPath = stripLocalePrefix(pathname);
-    if (localizedPath.endsWith('/signin')) {
+  if (isAuthPath(pathname)) {
+    if (!token) {
       return NextResponse.next();
     }
 
-    const isAdminPath = isAdminAreaPath(pathname);
-    const signInPath = isAdminPath ? `/${locale}/admin/signin` : `/${locale}/auth/signin`;
-    const signInUrl = new URL(signInPath, request.url);
-    signInUrl.searchParams.set('callbackUrl', request.url);
-    return NextResponse.redirect(signInUrl);
-  }
-
-  // Fingerprint mismatch invalidates the request and forces fresh auth.
-  const currentFingerprint = await fingerprintFromUserAgent(request.headers.get('user-agent') || '');
-  if (token.fingerprint && token.fingerprint !== currentFingerprint) {
-    return NextResponse.redirect(new URL(`/${locale}/auth/signin`, request.url));
-  }
-
-  const localizedPath = stripLocalePrefix(pathname);
-  const isAuthPath =
-    localizedPath === '/auth/signin' ||
-    localizedPath === '/auth/signup' ||
-    localizedPath === '/admin/signin' ||
-    localizedPath === '/auth/forgot-password' ||
-    localizedPath === '/auth/reset-password' ||
-    localizedPath === '/auth/forget-password';
-
-  if (isAuthPath) {
     const dest = token.role === 'admin' ? `/${locale}/admin` : `/${locale}/dashboard`;
-    if (pathname === dest) {
-      return NextResponse.next();
-    }
     return NextResponse.redirect(new URL(dest, request.url));
   }
 
-  const isDashboardRoute =
-    hasRoutePrefix(pathname, `/${locale}/dashboard`) ||
-    hasRoutePrefix(pathname, '/dashboard');
-  const isAdminRoute =
-    hasRoutePrefix(pathname, `/${locale}/admin`) ||
-    hasRoutePrefix(pathname, '/admin');
+  if (isPublicPath(pathname)) {
+    return NextResponse.next();
+  }
 
-  if (isDashboardRoute || isAdminRoute) {
-    if (isDashboardRoute && token.role === 'admin') {
-      return NextResponse.redirect(new URL(`/${locale}/admin`, request.url));
-    }
+  if (!token) {
+    return redirectToSignIn(request, locale);
+  }
 
-    if (isAdminRoute && token.role !== 'admin') {
-      return NextResponse.redirect(new URL(`/${locale}/dashboard`, request.url));
-    }
+  let currentFingerprint: string;
+  try {
+    currentFingerprint = await fingerprintFromUserAgent(
+      request.headers.get('user-agent') || ''
+    );
+  } catch (error) {
+    console.error('[proxy] Failed to verify session fingerprint', error);
+    return clearSessionCookie(redirectToSignIn(request, locale));
+  }
+
+  if (token.fingerprint && token.fingerprint !== currentFingerprint) {
+    return clearSessionCookie(redirectToSignIn(request, locale));
+  }
+
+  if (isOperatorAreaPath(pathname) && token.role === 'admin') {
+    return NextResponse.redirect(new URL(`/${locale}/admin`, request.url));
+  }
+
+  if (isAdminAreaPath(pathname) && token.role !== 'admin') {
+    return NextResponse.redirect(new URL(`/${locale}/dashboard`, request.url));
   }
 
   return NextResponse.next();
 }
 
+export default proxy;
+
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico).*)',
-  ]
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|gif|webp|svg|ico|css|js|map|txt|xml|woff|woff2|ttf)$).*)',
+  ],
 };

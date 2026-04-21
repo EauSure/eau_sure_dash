@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 import { getOrCreateUserProfile, updateUserProfile } from '@/lib/user-profile';
+import { sessionCookieName } from '@/lib/session-cookie';
 import { getUserByEmail } from '@/lib/user';
 import type { CompleteUserProfile } from '@/types/user-profile';
 import { z } from 'zod';
@@ -30,7 +31,11 @@ const updateProfileSchema = z.object({
 
 export async function GET(request: NextRequest) {
   try {
-    const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
+    const token = await getToken({
+      req: request,
+      secret: process.env.NEXTAUTH_SECRET,
+      cookieName: sessionCookieName,
+    });
     const email = typeof token?.email === 'string' ? token.email : null;
 
     if (!email) {
@@ -77,7 +82,11 @@ export async function GET(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
-    const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
+    const token = await getToken({
+      req: request,
+      secret: process.env.NEXTAUTH_SECRET,
+      cookieName: sessionCookieName,
+    });
     const email = typeof token?.email === 'string' ? token.email : null;
 
     if (!email) {

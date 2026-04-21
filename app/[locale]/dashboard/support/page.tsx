@@ -101,6 +101,10 @@ export default function SupportPage() {
   const [chatNow, setChatNow] = useState(Date.now());
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const typingPingRef = useRef<number | null>(null);
+  const ticketsLoadedRef = useRef(false);
+  const ticketsInFlightRef = useRef(false);
+  const chatInFlightRef = useRef(false);
+  const fetchMyChatRef = useRef<((silent?: boolean) => Promise<void>) | null>(null);
   const chatFilter = useMemo(() => new Filter(), []);
 
   const form = useForm<TicketFormValues>({
@@ -129,7 +133,12 @@ export default function SupportPage() {
       timeStyle: 'short',
     }).format(new Date(value));
 
-  const fetchTickets = useCallback(async () => {
+  const fetchTickets = useCallback(async (force = false) => {
+    if (ticketsInFlightRef.current || (!force && ticketsLoadedRef.current)) {
+      return;
+    }
+
+    ticketsInFlightRef.current = true;
     setLoadingTickets(true);
 
     try {
@@ -150,15 +159,22 @@ export default function SupportPage() {
 
       const payload = (await response.json()) as { tickets?: UserTicket[] };
       setTickets(payload.tickets ?? []);
+      ticketsLoadedRef.current = true;
     } catch (error) {
       const message = error instanceof Error ? error.message : t('error');
       toast.error(message);
     } finally {
+      ticketsInFlightRef.current = false;
       setLoadingTickets(false);
     }
   }, [locale, router, t]);
 
   const fetchMyChat = useCallback(async (silent = false) => {
+    if (chatInFlightRef.current) {
+      return;
+    }
+
+    chatInFlightRef.current = true;
     if (!silent) {
       setLoadingChat(true);
     }
@@ -185,11 +201,16 @@ export default function SupportPage() {
       const message = error instanceof Error ? error.message : t('error');
       toast.error(message);
     } finally {
+      chatInFlightRef.current = false;
       if (!silent) {
         setLoadingChat(false);
       }
     }
   }, [locale, router, t]);
+
+  useEffect(() => {
+    fetchMyChatRef.current = fetchMyChat;
+  }, [fetchMyChat]);
 
   const requestLiveChat = async () => {
     const reason = chatReason.trim();
@@ -236,24 +257,27 @@ export default function SupportPage() {
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push(`/${locale}/auth/signin`);
+    }
+  }, [locale, router, status]);
+
+  useEffect(() => {
+    if (status !== 'authenticated' || currentView !== 'my-tickets') {
       return;
     }
 
-    if (status === 'authenticated') {
-      void fetchTickets();
-    }
-  }, [fetchTickets, locale, router, status]);
+    void fetchTickets();
+  }, [currentView, fetchTickets, status]);
 
   useEffect(() => {
     if (status !== 'authenticated' || currentView !== 'live-chat') {
       return;
     }
 
-    void fetchMyChat();
+    void fetchMyChatRef.current?.();
 
     const intervalId = window.setInterval(() => {
-      void fetchMyChat(true);
-    }, 3000);
+      void fetchMyChatRef.current?.(true);
+    }, 5000);
 
     const clockId = window.setInterval(() => {
       setChatNow(Date.now());
@@ -263,7 +287,7 @@ export default function SupportPage() {
       window.clearInterval(intervalId);
       window.clearInterval(clockId);
     };
-  }, [currentView, fetchMyChat, status]);
+  }, [currentView, status]);
 
   useEffect(() => {
     if (typingPingRef.current) {
@@ -329,7 +353,7 @@ export default function SupportPage() {
         category: 'bug',
         priority: 'medium',
       });
-      await fetchTickets();
+      await fetchTickets(true);
       setCurrentView('my-tickets');
     } catch (error) {
       const message = error instanceof Error ? error.message : t('error');
@@ -458,10 +482,7 @@ export default function SupportPage() {
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.98 }}
                   className="flex w-full cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border bg-card p-8 text-center shadow-sm transition-all hover:border-primary/40 hover:shadow-md"
-                  onClick={() => {
-                    setCurrentView('my-tickets');
-                    void fetchTickets();
-                  }}
+                  onClick={() => setCurrentView('my-tickets')}
                   type="button"
                 >
                   <div className="rounded-full bg-primary/10 p-4">

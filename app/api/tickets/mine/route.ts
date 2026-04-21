@@ -1,6 +1,6 @@
-import { getToken } from 'next-auth/jwt';
 import { NextRequest, NextResponse } from 'next/server';
 import { getClient } from '@/lib/mongodb';
+import { requireOperatorContext } from '@/lib/server-auth';
 import { getUserByEmail } from '@/lib/user';
 import type { Ticket } from '@/lib/models/Ticket';
 import {
@@ -91,14 +91,12 @@ function buildTextSearch(search: string | null) {
 }
 
 export async function GET(req: NextRequest) {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-  const email = typeof token?.email === 'string' ? token.email : null;
-
-  if (!email) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const auth = await requireOperatorContext(req);
+  if (!auth) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
-  const currentUser = await getUserByEmail(email);
+  const currentUser = await getUserByEmail(auth.email);
   if (!currentUser) {
     return NextResponse.json({ error: 'User not found' }, { status: 404 });
   }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -71,7 +71,7 @@ export default function SettingsPage() {
   const t = useT('settings');
   const tCommon = useT('common');
   const currentLocale = useLocale();
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
   const pathname = usePathname();
   const [isLoading, setIsLoading] = useState(true);
@@ -96,18 +96,7 @@ export default function SettingsPage() {
     },
   });
 
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push(`/${currentLocale}/auth/signin`);
-      return;
-    }
-
-    if (status === 'authenticated') {
-      fetchProfile();
-    }
-  }, [currentLocale, status, router]);
-
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     try {
       setIsLoading(true);
       const response = await fetch('/api/user/me', {
@@ -147,7 +136,18 @@ export default function SettingsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [currentLocale, form, router]);
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push(`/${currentLocale}/auth/signin`);
+      return;
+    }
+
+    if (status === 'authenticated') {
+      void fetchProfile();
+    }
+  }, [currentLocale, fetchProfile, status, router]);
 
   const onSubmit = async (values: SettingsFormValues) => {
     try {

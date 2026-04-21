@@ -1,4 +1,4 @@
-import { unlink } from 'fs/promises';
+import { GridFSBucket, ObjectId } from 'mongodb';
 import { NextRequest, NextResponse } from 'next/server';
 import { getClient } from '@/lib/mongodb';
 import { requireAdminContext } from '@/lib/server-auth';
@@ -20,7 +20,7 @@ export async function DELETE(
     const client = await getClient();
     const db = client.db(process.env.MONGODB_DB || 'water_quality');
 
-    const release = await db.collection('firmware_releases').findOne({ releaseId });
+    const release = await db.collection<{ fileId?: ObjectId | string }>('firmware_releases').findOne({ releaseId });
 
     if (!release) {
       return NextResponse.json({ error: 'Release not found' }, { status: 404 });
@@ -28,8 +28,13 @@ export async function DELETE(
 
     await db.collection('firmware_releases').deleteOne({ releaseId });
 
-    if (typeof release.filePath === 'string' && release.filePath.length > 0) {
-      await unlink(release.filePath).catch(() => undefined);
+    const fileId =
+      typeof release.fileId === 'string' && ObjectId.isValid(release.fileId)
+        ? new ObjectId(release.fileId)
+        : release.fileId;
+    if (fileId instanceof ObjectId) {
+      const bucket = new GridFSBucket(db, { bucketName: 'firmware_files' });
+      await bucket.delete(fileId).catch(() => undefined);
     }
 
     return NextResponse.json({ success: true });

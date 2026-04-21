@@ -1,6 +1,4 @@
-import { MongoClient } from 'mongodb';
 import { getClient } from './mongodb';
-import { updateUser } from './user';
 import type { UserProfile, CompleteUserProfile, UpdateProfileInput } from '@/types/user-profile';
 
 const DB_NAME = process.env.MONGODB_DB || 'water_quality';
@@ -67,8 +65,8 @@ export async function updateUserProfile(
   const collection = db.collection<UserProfile>(COLLECTION_NAME);
 
   // Separate updates for users collection vs userProfiles collection
-  const userUpdates: any = {};
-  const profileUpdates: any = {
+  const userUpdates: Partial<Pick<CompleteUserProfile, 'name' | 'image'>> = {};
+  const profileUpdates: Partial<UserProfile> = {
     updatedAt: new Date(),
   };
 

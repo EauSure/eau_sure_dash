@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocale } from 'next-intl';
 import { toast } from 'sonner';
 import { UploadCloudIcon } from 'lucide-react';
@@ -42,7 +42,7 @@ export default function DeployUpdatesPage() {
   const [expandedReleaseIds, setExpandedReleaseIds] = useState<string[]>([]);
   const [releaseToDelete, setReleaseToDelete] = useState<FirmwareRelease | null>(null);
 
-  const fetchReleases = async () => {
+  const fetchReleases = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch('/api/admin/firmware', {
@@ -63,11 +63,11 @@ export default function DeployUpdatesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
 
   useEffect(() => {
     void fetchReleases();
-  }, []);
+  }, [fetchReleases]);
 
   const handleFileSelect = (file: File | null) => {
     if (!file) return;

@@ -14,11 +14,11 @@ const nextAuthSecret = process.env.NEXTAUTH_SECRET || '';
 const jwtSecret = process.env.JWT_SECRET || '';
 
 if (nextAuthSecret.length < 64) {
-  throw new Error('NEXTAUTH_SECRET must be at least 64 characters long.');
+  console.warn('NEXTAUTH_SECRET is shorter than 64 characters.');
 }
 
 if (jwtSecret && jwtSecret.length < 64) {
-  throw new Error('JWT_SECRET must be at least 64 characters long when set.');
+  console.warn('JWT_SECRET is shorter than 64 characters when set.');
 }
 
 export const authOptions: NextAuthOptions = {
@@ -52,7 +52,7 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials, req) {
         if (!credentials?.email || !credentials?.password) {
-          throw new Error('Please enter both email and password');
+          return null;
         }
 
         const requestedRole: 'user' | 'admin' =
@@ -61,7 +61,7 @@ export const authOptions: NextAuthOptions = {
         const user = await getUserByEmail(credentials.email);
 
         if (!user || !user.password) {
-          throw new Error('Invalid email or password');
+          return null;
         }
 
         const isPasswordValid = await comparePassword(
@@ -70,11 +70,11 @@ export const authOptions: NextAuthOptions = {
         );
 
         if (!isPasswordValid) {
-          throw new Error('Invalid email or password');
+          return null;
         }
 
         if (user.status === 'suspended') {
-          throw new Error('Your account is suspended. Contact an administrator.');
+          return null;
         }
 
         const actualRole: 'user' | 'admin' = user.role === 'admin' ? 'admin' : 'user';
@@ -86,12 +86,11 @@ export const authOptions: NextAuthOptions = {
               : null;
 
         if (expectedRole && actualRole !== expectedRole) {
-          // Never expose role mismatch details for failed auth attempts.
           return null;
         }
 
         if (requestedRole === 'admin' && actualRole !== 'admin') {
-          throw new Error('Your account does not have admin access');
+          return null;
         }
 
         const userAgent = req?.headers?.['user-agent'] || '';

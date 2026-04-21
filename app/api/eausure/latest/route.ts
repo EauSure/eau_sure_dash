@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(data, { status: 200 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to fetch latest sensor data';
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error('[GET /api/eausure/latest]', error);
+    return NextResponse.json({ error: 'Failed to fetch latest sensor data' }, { status: 500 });
   }
 }

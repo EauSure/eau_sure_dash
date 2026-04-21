@@ -1,6 +1,5 @@
-import { mkdir, writeFile } from 'fs/promises';
-import path from 'path';
-import { ObjectId } from 'mongodb';
+import { Readable } from 'stream';
+import { GridFSBucket, ObjectId } from 'mongodb';
 import { NextRequest, NextResponse } from 'next/server';
 import { getClient } from '@/lib/mongodb';
 import { requireAdminContext } from '@/lib/server-auth';
@@ -20,7 +19,8 @@ type FirmwareRelease = {
   version: string;
   filename: string;
   fileSize: number;
-  filePath: string;
+  fileId: ObjectId;
+  filePath?: string;
   changelog: string;
   uploadedBy: string;
   downloadCount: number;
@@ -33,6 +33,27 @@ function sanitizeFilename(value: string): string {
 
 function buildReleaseId(seq: number): string {
   return `FW-${String(seq).padStart(3, '0')}`;
+}
+
+async function uploadFirmwareFile(
+  bucket: GridFSBucket,
+  fileBuffer: Buffer,
+  filename: string,
+  metadata: { releaseId: string; version: string }
+): Promise<ObjectId> {
+  const uploadStream = bucket.openUploadStream(filename, {
+    contentType: 'application/octet-stream',
+    metadata,
+  });
+
+  await new Promise<void>((resolve, reject) => {
+    Readable.from(fileBuffer)
+      .pipe(uploadStream)
+      .on('error', reject)
+      .on('finish', resolve);
+  });
+
+  return uploadStream.id as ObjectId;
 }
 
 function toReleaseDto(release: FirmwareRelease) {
@@ -125,15 +146,14 @@ export async function POST(req: NextRequest) {
     );
 
     const releaseId = buildReleaseId(counter?.seq ?? 1);
-    const firmwareDir = path.join(process.cwd(), 'public', 'firmware');
-    await mkdir(firmwareDir, { recursive: true });
-
     const sanitizedOriginal = sanitizeFilename(rawFile.name);
     const storedFilename = `${releaseId}-${Date.now()}-${sanitizedOriginal}`;
-    const absoluteFilePath = path.join(firmwareDir, storedFilename);
-
     const fileBuffer = Buffer.from(await rawFile.arrayBuffer());
-    await writeFile(absoluteFilePath, fileBuffer);
+    const bucket = new GridFSBucket(db, { bucketName: 'firmware_files' });
+    const fileId = await uploadFirmwareFile(bucket, fileBuffer, storedFilename, {
+      releaseId,
+      version,
+    });
 
     const now = new Date();
     const uploadedBy = token.email;
@@ -143,7 +163,8 @@ export async function POST(req: NextRequest) {
       version,
       filename: rawFile.name,
       fileSize: rawFile.size,
-      filePath: absoluteFilePath,
+      fileId,
+      filePath: '',
       changelog,
       uploadedBy,
       downloadCount: 0,

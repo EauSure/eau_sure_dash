@@ -1,5 +1,6 @@
 import { getToken, type JWT } from 'next-auth/jwt';
 import type { NextRequest } from 'next/server';
+import { sessionCookieName } from './session-cookie';
 import { getUserByEmail } from './user';
 
 export type RequestAuthContext = {
@@ -17,7 +18,7 @@ export async function getRequestAuthContext(
     return null;
   }
 
-  const token = await getToken({ req, secret });
+  const token = await getToken({ req, secret, cookieName: sessionCookieName });
   const email = typeof token?.email === 'string' ? token.email : null;
 
   if (!token || !email) {
@@ -42,6 +43,17 @@ export async function requireAdminContext(
 ): Promise<RequestAuthContext | null> {
   const auth = await getRequestAuthContext(req);
   if (!auth || auth.role !== 'admin') {
+    return null;
+  }
+
+  return auth;
+}
+
+export async function requireOperatorContext(
+  req: NextRequest
+): Promise<RequestAuthContext | null> {
+  const auth = await getRequestAuthContext(req);
+  if (!auth || auth.role === 'admin') {
     return null;
   }
 

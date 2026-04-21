@@ -1,35 +1,27 @@
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
 import { createUser } from '@/lib/user';
+
+const signupSchema = z.object({
+  name: z.string().trim().min(1).max(120),
+  email: z.string().trim().email().max(320),
+  password: z.string().min(6).max(128),
+});
 
 export async function POST(request: Request) {
   try {
-    const { name, email, password } = await request.json();
+    const body = await request.json().catch(() => null);
+    const validation = signupSchema.safeParse(body);
+
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: 'Invalid input' },
+        { status: 400 }
+      );
+    }
+
+    const { name, email, password } = validation.data;
     const role = 'user' as const;
-
-    // Validate input
-    if (!name || !email || !password) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      );
-    }
-
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return NextResponse.json(
-        { error: 'Invalid email format' },
-        { status: 400 }
-      );
-    }
-
-    // Validate password length
-    if (password.length < 6) {
-      return NextResponse.json(
-        { error: 'Password must be at least 6 characters' },
-        { status: 400 }
-      );
-    }
 
     // Admin accounts are never created through self-service signup.
     // Seed them directly in MongoDB or create them with a protected internal script.
@@ -55,10 +47,9 @@ export async function POST(request: Request) {
       },
     });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Internal server error';
     console.error('Signup error:', error);
     return NextResponse.json(
-      { error: message },
+      { error: 'Unable to create account' },
       { status: 500 }
     );
   }

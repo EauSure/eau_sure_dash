@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocale } from 'next-intl';
 import { toast } from 'sonner';
 import { MoreHorizontal, Search } from 'lucide-react';
@@ -48,7 +48,7 @@ export default function SuperviseSystemPage() {
   const [firmwareDraft, setFirmwareDraft] = useState('');
   const [saving, setSaving] = useState(false);
 
-  const fetchNodes = async () => {
+  const fetchNodes = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch('/api/admin/nodes', {
@@ -69,11 +69,11 @@ export default function SuperviseSystemPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
 
   useEffect(() => {
     void fetchNodes();
-  }, []);
+  }, [fetchNodes]);
 
   const filteredNodes = useMemo(() => {
     const query = search.trim().toLowerCase();

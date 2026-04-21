@@ -2,7 +2,6 @@ import { getServerSession } from 'next-auth/next';
 import { redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth-options';
 import { Radio } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 export default async function GatewayPage() {
   const session = await getServerSession(authOptions);
