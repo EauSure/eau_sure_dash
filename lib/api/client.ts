@@ -1,13 +1,7 @@
+import type { NextRequest } from 'next/server';
 import jwt from 'jsonwebtoken';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth-options';
-import {
-  classifyApiErrorKey,
-  isSafeSpecificApiMessage,
-  parseApiErrorPayload,
-} from './error-utils';
-
-export { classifyApiError, classifyApiErrorKey } from './error-utils';
 
 export interface ValidationError {
   field?: string;
@@ -118,18 +112,17 @@ export interface IotNode {
 export class ExternalApiError extends Error {
   status: number;
   errors?: ValidationError[];
-  classificationKey: string;
 
-  constructor(message: string, status: number, errors?: ValidationError[], classificationKey?: string) {
+  constructor(message: string, status: number, errors?: ValidationError[]) {
     super(message);
     this.name = 'ExternalApiError';
     this.status = status;
     this.errors = errors;
-    this.classificationKey = classificationKey ?? classifyApiErrorKey({ status, message, errors });
   }
 }
 
 type ApiFetchOptions = {
+  request: NextRequest;
   method?: string;
   query?: URLSearchParams | Record<string, string | number | boolean | null | undefined>;
   body?: unknown;
@@ -205,26 +198,19 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions): Promi
     body = JSON.stringify(options.body);
   }
 
-  let response: Response;
-  try {
-    response = await fetch(url, {
-      method: options.method ?? 'GET',
-      headers,
-      body,
-      cache: 'no-store',
-    });
-  } catch (error) {
-    console.error('[EauSure API] Network request failed', error);
-    throw new ExternalApiError('Network request failed', 0, undefined, 'network');
-  }
+  const response = await fetch(url, {
+    method: options.method ?? 'GET',
+    headers,
+    body,
+    cache: 'no-store',
+  });
 
   const contentType = response.headers.get('content-type') || '';
   const payload = contentType.includes('application/json') ? await response.json().catch(() => null) : await response.text().catch(() => null);
 
   if (!response.ok) {
     const typed = payload && typeof payload === 'object' ? (payload as Partial<ApiResponse<unknown>>) : undefined;
-    const details = parseApiErrorPayload(payload, response.status);
-    throw new ExternalApiError(errorMessageFromPayload(payload, `External API request failed with status ${response.status}`), response.status, typed?.errors, classifyApiErrorKey(details));
+    throw new ExternalApiError(errorMessageFromPayload(payload, `External API request failed with status ${response.status}`), response.status, typed?.errors);
   }
 
   if (payload && typeof payload === 'object' && 'success' in payload) {
@@ -242,21 +228,15 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions): Promi
 
 export function toRouteError(error: unknown) {
   if (error instanceof ExternalApiError) {
-    const safeMessage = isSafeSpecificApiMessage(error.message) ? error.message : undefined;
     return {
-      body: {
-        success: false,
-        message: safeMessage,
-        errorCode: error.classificationKey,
-        errors: error.errors,
-      },
+      body: { success: false, message: error.message, errors: error.errors },
       status: error.status,
     };
   }
 
-  console.error('[EauSure API] Unexpected route error', error);
   return {
-    body: { success: false, errorCode: 'generic' },
+    body: { success: false, message: error instanceof Error ? error.message : 'Unexpected API error' },
     status: 500,
   };
 }
+
