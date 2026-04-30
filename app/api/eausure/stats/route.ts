@@ -1,20 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getEauSureStats } from '@/lib/eausure-server';
-import { getRequestAuthContext } from '@/lib/server-auth';
+import { getSensorStats } from '@/lib/api/sensor';
+import { toRouteError } from '@/lib/api/client';
 
 export async function GET(request: NextRequest) {
-  const auth = await getRequestAuthContext(request);
-  if (!auth) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
   try {
-    const hours = request.nextUrl.searchParams.get('hours');
-    const data = await getEauSureStats(hours);
-
+    const params = new URLSearchParams(request.nextUrl.searchParams);
+    const data = await getSensorStats(params);
     return NextResponse.json(data, { status: 200 });
   } catch (error) {
     console.error('[GET /api/eausure/stats]', error);
-    return NextResponse.json({ error: 'Failed to fetch stats' }, { status: 500 });
+    const routeError = toRouteError(error);
+    return NextResponse.json(routeError.body, { status: routeError.status });
   }
 }

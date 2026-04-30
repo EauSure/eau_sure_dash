@@ -137,16 +137,6 @@ function getPreferredLocale(request: NextRequest): (typeof locales)[number] {
   return defaultLocale;
 }
 
-async function fingerprintFromUserAgent(userAgent: string): Promise<string> {
-  const encoded = new TextEncoder().encode(userAgent);
-  const digest = await crypto.subtle.digest('SHA-256', encoded);
-
-  return Array.from(new Uint8Array(digest))
-    .slice(0, 8)
-    .map((byte) => byte.toString(16).padStart(2, '0'))
-    .join('');
-}
-
 function redirectToSignIn(request: NextRequest, locale: string): NextResponse {
   const signInPath = isAdminAreaPath(request.nextUrl.pathname)
     ? `/${locale}/admin/signin`
@@ -155,11 +145,6 @@ function redirectToSignIn(request: NextRequest, locale: string): NextResponse {
   signInUrl.searchParams.set('callbackUrl', request.url);
 
   return NextResponse.redirect(signInUrl);
-}
-
-function clearSessionCookie(response: NextResponse): NextResponse {
-  response.cookies.delete(sessionCookieName);
-  return response;
 }
 
 export async function proxy(request: NextRequest) {
@@ -206,20 +191,6 @@ export async function proxy(request: NextRequest) {
 
   if (!token) {
     return redirectToSignIn(request, locale);
-  }
-
-  let currentFingerprint: string;
-  try {
-    currentFingerprint = await fingerprintFromUserAgent(
-      request.headers.get('user-agent') || ''
-    );
-  } catch (error) {
-    console.error('[proxy] Failed to verify session fingerprint', error);
-    return clearSessionCookie(redirectToSignIn(request, locale));
-  }
-
-  if (token.fingerprint && token.fingerprint !== currentFingerprint) {
-    return clearSessionCookie(redirectToSignIn(request, locale));
   }
 
   if (isOperatorAreaPath(pathname) && token.role === 'admin') {

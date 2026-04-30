@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Particles, { initParticlesEngine } from '@tsparticles/react';
 import { loadSlim } from '@tsparticles/slim';
-import type { Container, ISourceOptions } from '@tsparticles/engine';
+import type { ISourceOptions } from '@tsparticles/engine';
 import { useTheme } from 'next-themes';
 
 // Debug mode: set to true to make particles highly visible
@@ -74,11 +74,7 @@ export function ParticlesBackground() {
     return () => observer.disconnect();
   }, [resolvedTheme]);
 
-  const particlesLoaded = async (container?: Container): Promise<void> => {
-    if (DEBUG) {
-      console.log('✅ Particles loaded successfully', container);
-    }
-  };
+  const particlesLoaded = async (): Promise<void> => {};
 
   const options: ISourceOptions = useMemo(
     () => ({
@@ -196,3 +192,4 @@ export function ParticlesBackground() {
     </>
   );
 }
+

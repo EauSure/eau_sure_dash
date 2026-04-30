@@ -3,9 +3,13 @@ import { GridFSBucket, ObjectId } from 'mongodb';
 import { getToken } from 'next-auth/jwt';
 import { NextRequest, NextResponse } from 'next/server';
 import { getClient } from '@/lib/mongodb';
-import { sessionCookieName } from '@/lib/session-cookie';
 
 export const runtime = 'nodejs';
+
+const sessionCookieName =
+  process.env.NODE_ENV === 'production'
+    ? '__Host-eausure.session'
+    : 'eausure.session';
 
 type FirmwareReleaseRecord = {
   releaseId: string;

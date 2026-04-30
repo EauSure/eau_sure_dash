@@ -203,7 +203,7 @@ export default function ProfilePage() {
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-7">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0 }}>
           <div className="mb-6 flex flex-col gap-1">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-blue-500">EauSure · Profile</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-blue-500">{t('eyebrow')}</p>
             <h1 className="text-2xl font-black tracking-tight text-gray-900 dark:text-foreground">{t('title')}</h1>
             <p className="mt-0.5 text-xs text-gray-400 dark:text-muted-foreground">{t('description')}</p>
           </div>
@@ -214,7 +214,7 @@ export default function ProfilePage() {
             <div className="py-5 ps-6 pe-5">
               <div className="mb-5 flex items-center justify-between">
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-400">Identity</span>
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-400">{t('sections.identity')}</span>
                   <span className="text-base font-bold text-gray-900 dark:text-foreground">{t('personalInfo')}</span>
                 </div>
               </div>
@@ -235,9 +235,9 @@ export default function ProfilePage() {
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
-                      <h3 className="text-sm font-medium mb-1">Profile Picture</h3>
+                      <h3 className="text-sm font-medium mb-1">{t('avatar.title')}</h3>
                       <p className="text-xs text-muted-foreground">
-                        Choose from suggested avatars or provide your own image
+                        {t('avatar.description')}
                       </p>
                     </div>
                   </div>
@@ -282,16 +282,16 @@ export default function ProfilePage() {
                   name="bio"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Bio</FormLabel>
+                      <FormLabel>{t('bio')}</FormLabel>
                       <FormControl>
                         <Textarea
-                          placeholder="Tell us about yourself..."
+                          placeholder={t('bioPlaceholder')}
                           className="min-h-25 resize-none"
                           {...field}
                         />
                       </FormControl>
                       <FormDescription>
-                        Brief description for your profile (max 500 characters)
+                        {t('bioDescription')}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -320,7 +320,7 @@ export default function ProfilePage() {
                       <FormItem>
                         <FormLabel>{t('role')}</FormLabel>
                         <FormControl>
-                          <Input placeholder="Your job title" {...field} />
+                          <Input placeholder={t('rolePlaceholder')} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -386,3 +386,4 @@ export default function ProfilePage() {
     </div>
   );
 }
+

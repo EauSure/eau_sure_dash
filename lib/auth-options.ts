@@ -1,7 +1,6 @@
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { MongoDBAdapter } from '@auth/mongodb-adapter';
-import { createHash } from 'crypto';
 import clientPromise from './mongodb';
 import { dbConnect } from './mongodb';
 import { comparePassword } from './auth';
@@ -52,7 +51,7 @@ export const authOptions: NextAuthOptions = {
         roleMismatchError: { label: 'Role Mismatch Error', type: 'text' },
         rememberMe: { label: 'Remember Me', type: 'text' },
       },
-      async authorize(credentials, req) {
+      async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
           return null;
         }
@@ -95,12 +94,6 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        const userAgent = req?.headers?.['user-agent'] || '';
-        const fingerprint = createHash('sha256')
-          .update(Array.isArray(userAgent) ? userAgent.join(' ') : userAgent)
-          .digest('hex')
-          .slice(0, 16);
-
         return {
           id: user._id.toString(),
           email: user.email,
@@ -110,7 +103,6 @@ export const authOptions: NextAuthOptions = {
           language: user.language ?? 'fr',
           theme: user.theme ?? 'system',
           rememberMe: credentials.rememberMe === 'true',
-          fingerprint,
         };
       },
     }),
@@ -132,7 +124,6 @@ export const authOptions: NextAuthOptions = {
         token.language = user.language ?? 'fr';
         token.theme = user.theme ?? 'system';
         token.rememberMe = user.rememberMe;
-        token.fingerprint = user.fingerprint;
 
         if (typeof user.email === 'string') {
           await updateUserPresenceByEmail(user.email, 'online');

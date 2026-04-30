@@ -3,7 +3,6 @@ import { getToken } from 'next-auth/jwt';
 import type { Db } from 'mongodb';
 import { z } from 'zod';
 import { dbConnect } from '@/lib/mongodb';
-import { sessionCookieName } from '@/lib/session-cookie';
 import type { User } from '@/lib/user';
 import type { UserProfile, CompleteUserProfile, UserPreferences } from '@/types/user-profile';
 
@@ -16,6 +15,10 @@ const DEFAULT_LANGUAGE = 'fr';
 const DEFAULT_THEME = 'system';
 const DEFAULT_DATE_FORMAT = 'DD/MM/YYYY';
 const DEFAULT_TIME_FORMAT = '24h';
+const sessionCookieName =
+  process.env.NODE_ENV === 'production'
+    ? '__Host-eausure.session'
+    : 'eausure.session';
 
 function isValidTimeZone(value: string) {
   try {
@@ -90,7 +93,6 @@ type UpdateUserInput = z.infer<typeof updateUserSchema>;
 type UserDocument = User & {
   resetToken?: string;
   resetTokenExpiry?: Date;
-  fingerprint?: string;
   loginHistory?: Array<{ timestamp: Date; timezone: string }>;
 };
 
@@ -287,7 +289,6 @@ export async function GET(request: NextRequest) {
           password: 0,
           resetToken: 0,
           resetTokenExpiry: 0,
-          fingerprint: 0,
         },
       }
     );
@@ -354,7 +355,6 @@ export async function PATCH(request: NextRequest) {
           password: 0,
           resetToken: 0,
           resetTokenExpiry: 0,
-          fingerprint: 0,
         },
       }
     );
@@ -370,3 +370,4 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 });
   }
 }
+

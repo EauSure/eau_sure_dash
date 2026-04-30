@@ -15,7 +15,6 @@ declare module 'next-auth' {
     id: string;
     role?: 'user' | 'admin';
     rememberMe?: boolean;
-    fingerprint?: string;
     timezone?: string;
     language?: 'fr' | 'en' | 'ar';
     theme?: 'light' | 'dark' | 'system';
@@ -27,7 +26,6 @@ declare module 'next-auth/jwt' {
     id: string;
     role?: 'user' | 'admin';
     rememberMe?: boolean;
-    fingerprint?: string;
     userId?: string;
     timezone?: string;
     language?: 'fr' | 'en' | 'ar';

@@ -37,13 +37,11 @@ export function AvatarSelector({ currentAvatar, userName, onAvatarChange }: Avat
   );
 
   const handleSuggestedSelect = (url: string) => {
-    console.log('Avatar selected:', url);
     setSelectedAvatar(url);
     onAvatarChange(url);
   };
 
   const handleCustomUrlChange = (url: string) => {
-    console.log('Custom URL changed:', url);
     setCustomUrl(url);
     setSelectedAvatar(url);
     onAvatarChange(url);

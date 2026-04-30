@@ -1,7 +1,11 @@
 import { getToken } from 'next-auth/jwt';
 import { NextRequest } from 'next/server';
-import { sessionCookieName } from '@/lib/session-cookie';
 import { updateUserPresenceByEmail, updateUserPresenceById } from '@/lib/user';
+
+const sessionCookieName =
+  process.env.NODE_ENV === 'production'
+    ? '__Host-eausure.session'
+    : 'eausure.session';
 
 export async function POST(req: NextRequest) {
   const token = await getToken({

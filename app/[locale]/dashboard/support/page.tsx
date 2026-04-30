@@ -673,7 +673,7 @@ export default function SupportPage() {
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div className="space-y-1">
                         <p className="text-sm font-semibold">{t('chat.title')}</p>
-                        <p className="text-xs text-muted-foreground">Support Agent will respond when your request is accepted.</p>
+                        <p className="text-xs text-muted-foreground">{t('chat.requestAcceptedHint')}</p>
                       </div>
                       {chatSession ? (
                         <Badge variant="outline" className="capitalize">
@@ -687,9 +687,9 @@ export default function SupportPage() {
                     <div className="grid gap-5 p-5 sm:p-6 lg:grid-cols-[1.15fr_0.85fr]">
                       <div className="space-y-4">
                         <div className="space-y-2">
-                          <h2 className="text-lg font-semibold">Request a live chat</h2>
+                          <h2 className="text-lg font-semibold">{t('chat.requestTitle')}</h2>
                           <p className="text-sm text-muted-foreground">
-                            Enter a short subject or reason so Support Agent can route your request.
+                            {t('chat.requestDescription')}
                           </p>
                         </div>
                         <div className="space-y-3">
@@ -697,21 +697,21 @@ export default function SupportPage() {
                             className="min-h-36"
                             value={chatReason}
                             onChange={(event) => setChatReason(event.target.value)}
-                            placeholder="Example: Sensor readings are inconsistent after reconnecting the gateway"
+                            placeholder={t('chat.reasonPlaceholder')}
                           />
                           <Button onClick={() => void requestLiveChat()} disabled={requestingChat || !chatReason.trim()}>
                             {requestingChat ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
-                            Submit Request
+                            {t('chat.submitRequest')}
                           </Button>
                         </div>
                       </div>
 
                       <div className="rounded-2xl border bg-background p-4">
-                        <p className="text-sm font-medium">Before you start</p>
+                        <p className="text-sm font-medium">{t('chat.beforeStart')}</p>
                         <div className="mt-3 space-y-3 text-sm text-muted-foreground">
-                          <p>• Live chat is queued in the order requests are received.</p>
-                          <p>• Bad words are filtered before messages are sent.</p>
-                          <p>• You can continue using tickets if the chat is paused or ended.</p>
+                          <p>{t('chat.queueHint')}</p>
+                          <p>{t('chat.filterHint')}</p>
+                          <p>{t('chat.ticketFallbackHint')}</p>
                         </div>
                       </div>
                     </div>
@@ -722,7 +722,7 @@ export default function SupportPage() {
                           <div className="rounded-2xl border bg-muted/20 p-4">
                             <div className="flex items-start justify-between gap-3">
                               <div>
-                                <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Reason / Subject</p>
+                                <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">{t('chat.reasonSubject')}</p>
                                 <p className="mt-1 text-base font-semibold">{chatSession.reason}</p>
                               </div>
                               {chatSession.startedAt ? (
@@ -741,16 +741,16 @@ export default function SupportPage() {
                                   chatSession.status === 'ended' && 'bg-rose-500'
                                 )}
                               />
-                              {chatSession.status === 'waiting' ? 'Waiting for Support Agent' : null}
-                              {chatSession.status === 'active' ? 'Support Agent is connected' : null}
-                              {chatSession.status === 'suspended' ? `Chat suspended${chatSession.suspendedBy ? ` by ${chatSession.suspendedBy}` : ''}` : null}
-                              {chatSession.status === 'ended' ? 'Chat ended' : null}
+                              {chatSession.status === 'waiting' ? t('chat.statusWaitingAgent') : null}
+                              {chatSession.status === 'active' ? t('chat.statusConnected') : null}
+                              {chatSession.status === 'suspended' ? t('chat.statusSuspended') : null}
+                              {chatSession.status === 'ended' ? t('chat.statusEnded') : null}
                             </div>
                           </div>
 
                           {chatSession.adminTyping && isRecentTimestamp(chatSession.adminTyping, 3000) ? (
                             <div className="rounded-full border bg-muted/40 px-4 py-2 text-sm text-muted-foreground">
-                              Admin is typing...
+                              {t('chat.adminTyping')}
                             </div>
                           ) : null}
 
@@ -763,8 +763,8 @@ export default function SupportPage() {
                             ) : chatMessages.length === 0 ? (
                               <p className="text-sm text-muted-foreground">
                                 {chatSession.status === 'waiting'
-                                  ? 'Your request is in the queue. Messages will appear once Support Agent accepts it.'
-                                  : 'Start the conversation with Support Agent.'}
+                                  ? t('chat.queueEmpty')
+                                  : t('chat.startConversation')}
                               </p>
                             ) : (
                               chatMessages.map((message, index) => {
@@ -818,24 +818,24 @@ export default function SupportPage() {
 
                       <div className="flex flex-col gap-4 p-5">
                         <div className="rounded-2xl border bg-background p-4">
-                          <p className="text-sm font-medium">Live chat status</p>
+                          <p className="text-sm font-medium">{t('chat.statusTitle')}</p>
                           <p className="mt-1 text-sm text-muted-foreground">
                             {chatSession.status === 'waiting'
-                              ? 'Support Agent has not accepted this chat yet.'
+                              ? t('chat.waitingDescription')
                               : chatSession.status === 'suspended'
-                                ? 'Messaging is paused until Support Agent resumes the chat.'
+                                ? t('chat.suspendedDescription')
                                 : chatSession.status === 'ended'
-                                  ? 'This conversation has ended.'
-                                  : 'You can send messages now.'}
+                                  ? t('chat.endedDescription')
+                                  : t('chat.activeDescription')}
                           </p>
                         </div>
 
                         <div className="rounded-2xl border bg-background p-4">
-                          <p className="text-sm font-medium">Message</p>
+                          <p className="text-sm font-medium">{t('chat.messageTitle')}</p>
                           <div className="mt-3 flex gap-2">
                             <Textarea
                               className="min-h-28 flex-1"
-                              placeholder="Type your message..."
+                              placeholder={t('chat.placeholder')}
                               value={chatInput}
                               onChange={(event) => setChatInput(event.target.value)}
                               disabled={!canSendChat || sendingChat}
@@ -849,11 +849,11 @@ export default function SupportPage() {
                           </div>
                           <div className="mt-3 flex items-center justify-between gap-3">
                             <p className="text-xs text-muted-foreground">
-                              {isChatLocked ? 'This chat is locked by Support Agent.' : canSendChat ? 'Typing is shared with Support Agent.' : 'Messages can only be sent after the chat is accepted.'}
+                              {isChatLocked ? t('chat.lockedHint') : canSendChat ? t('chat.typingSharedHint') : t('chat.acceptedOnlyHint')}
                             </p>
                             <Button onClick={() => void sendChatMessage()} disabled={!canSendChat || !chatInput.trim() || sendingChat}>
                               {sendingChat ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
-                              Send
+                              {t('chat.send')}
                             </Button>
                           </div>
                         </div>
@@ -924,3 +924,4 @@ export default function SupportPage() {
     </div>
   );
 }
+

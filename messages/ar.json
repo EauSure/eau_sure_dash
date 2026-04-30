@@ -46,7 +46,9 @@
       "noWells": "لم يتم تكوين أي آبار",
       "noAlerts": "لا توجد تنبيهات",
       "noGateways": "لم يتم تكوين أي بوابات",
-      "noData": "لا توجد بيانات متاحة"
+      "noData": "لا توجد بيانات متاحة",
+      "activeDevices": "Active Devices",
+      "batteryHealth": "Battery Health"
     },
     "setup": {
       "title": "إعداد النظام مطلوب",
@@ -56,6 +58,72 @@
       "step2": "إعداد بوابات LoRaWAN لاتصال الشبكة",
       "step3": "تسجيل الأجهزة في تكوين النظام",
       "step4": "معايرة مستشعرات الأس الهيدروجيني والمواد الصلبة الذائبة"
+    },
+    "description": "Visualize live readings, history, and system performance.",
+    "eyebrow": {
+      "overview": "EauSure ? Overview"
+    },
+    "labels": {
+      "quality": "quality",
+      "readingSummary": "Reading pH {ph}, TDS {tds}",
+      "trendWindow": "Trend window",
+      "timeline": "Timeline",
+      "history": "History"
+    },
+    "live": {
+      "paused": "Auto-refresh paused",
+      "mqtt": "Live source: MQTT",
+      "polling": "Refreshing every {seconds}s",
+      "unavailableTitle": "Live data unavailable - showing last known readings",
+      "unavailableDescription": "MQTT and polling are both unavailable. We will keep the last readings visible while we reconnect."
+    },
+    "connection": {
+      "connecting": "Connecting",
+      "mqtt": "MQTT connected",
+      "polling": "Polling fallback",
+      "offline": "Offline",
+      "error": "Connection issue"
+    },
+    "actions": {
+      "refreshLatest": "Refresh latest",
+      "refreshHistory": "Refresh history",
+      "retry": "Retry"
+    },
+    "states": {
+      "loading": "Loading live dashboard data...",
+      "emptyHistory": "No sensor readings yet."
+    },
+    "ranges": {
+      "month": "Month",
+      "week": "Week",
+      "hour": "Hour"
+    },
+    "status": {
+      "stable": "Stable",
+      "warning": "Warning",
+      "critical": "Critical",
+      "noData": "No data",
+      "normal": "Normal"
+    },
+    "columns": {
+      "timestamp": "Timestamp",
+      "event": "Event",
+      "status": "Status"
+    },
+    "errors": {
+      "loadDashboard": "Failed to load dashboard data.",
+      "api": {
+        "badRequest": "The request could not be completed. Please check your filters and try again.",
+        "sessionExpired": "Your session has expired. Please sign in again.",
+        "forbidden": "You don't have permission to access this data.",
+        "notFound": "No data found for your account.",
+        "rateLimited": "Too many requests. Please wait a moment and try again.",
+        "server": "The server encountered an error. Please try again later.",
+        "unavailable": "The service is temporarily unavailable. Please try again in a moment.",
+        "network": "Unable to reach the server. Check your internet connection.",
+        "timeout": "The request took too long to respond.",
+        "generic": "Something went wrong. Please try again."
+      }
     }
   },
   "profile": {
@@ -88,7 +156,19 @@
     "actionBar": {
       "unsavedMessage": "لقد قمت بتعديل ملفك الشخصي. احفظ أو تجاهل التغييرات للمتابعة.",
       "savedMessage": "ملفك الشخصي محدث."
-    }
+    },
+    "eyebrow": "EauSure ? Profile",
+    "sections": {
+      "identity": "Identity"
+    },
+    "avatar": {
+      "title": "Profile Picture",
+      "description": "Choose from suggested avatars or provide your own image"
+    },
+    "bio": "Bio",
+    "bioPlaceholder": "Tell us about yourself...",
+    "bioDescription": "Brief description for your profile (max 500 characters)",
+    "rolePlaceholder": "Your job title"
   },
   "settings": {
     "title": "الإعدادات",
@@ -368,13 +448,93 @@
       "device": "الجهاز",
       "message": "الرسالة",
       "time": "الوقت"
+    },
+    "criticalRatio": "Critical Ratio",
+    "actions": {
+      "refresh": "Refresh alerts",
+      "retry": "Retry"
+    },
+    "states": {
+      "loading": "Loading alerts...",
+      "empty": "No alerts found."
+    },
+    "errors": {
+      "load": "Failed to load alerts.",
+      "api": {
+        "badRequest": "The request could not be completed. Please check your filters and try again.",
+        "sessionExpired": "Your session has expired. Please sign in again.",
+        "forbidden": "You don't have permission to access this data.",
+        "notFound": "No data found for your account.",
+        "rateLimited": "Too many requests. Please wait a moment and try again.",
+        "server": "The server encountered an error. Please try again later.",
+        "unavailable": "The service is temporarily unavailable. Please try again in a moment.",
+        "network": "Unable to reach the server. Check your internet connection.",
+        "timeout": "The request took too long to respond.",
+        "generic": "Something went wrong. Please try again."
+      }
+    },
+    "sections": {
+      "monitoring": "Monitoring"
+    },
+    "eyebrow": "EauSure ? Alerts",
+    "notificationTitle": "EauSure Alert",
+    "severity": {
+      "critical": "Critical",
+      "warning": "Warning",
+      "info": "Info"
     }
   },
   "wells": {
     "title": "الآبار والخزانات",
     "description": "لم يتم تكوين أي مواقع مراقبة",
     "empty": "لم يتم تكوين أي آبار",
-    "instruction": "أنشر عقد الاستشعار العائمة في آبارك وخزانات المياه، ثم سجلها في النظام لبدء مراقبة معايير جودة المياه."
+    "instruction": "أنشر عقد الاستشعار العائمة في آبارك وخزانات المياه، ثم سجلها في النظام لبدء مراقبة معايير جودة المياه.",
+    "eyebrow": "EauSure ? Wells",
+    "actions": {
+      "refresh": "Refresh wells",
+      "retry": "Retry"
+    },
+    "metrics": {
+      "total": "Monitoring Sites",
+      "stable": "Stable",
+      "warning": "Warnings",
+      "critical": "Critical"
+    },
+    "sections": {
+      "monitoring": "Monitoring",
+      "wells": "Wells & Reservoirs"
+    },
+    "states": {
+      "loading": "Loading wells..."
+    },
+    "labels": {
+      "gateway": "Gateway",
+      "ph": "pH",
+      "tds": "TDS",
+      "temperature": "Temperature",
+      "battery": "Battery",
+      "lastReading": "Last reading"
+    },
+    "status": {
+      "stable": "Stable",
+      "warning": "Warning",
+      "critical": "Critical"
+    },
+    "errors": {
+      "load": "Failed to load monitoring sites.",
+      "api": {
+        "badRequest": "The request could not be completed. Please check your filters and try again.",
+        "sessionExpired": "Your session has expired. Please sign in again.",
+        "forbidden": "You don't have permission to access this data.",
+        "notFound": "No data found for your account.",
+        "rateLimited": "Too many requests. Please wait a moment and try again.",
+        "server": "The server encountered an error. Please try again later.",
+        "unavailable": "The service is temporarily unavailable. Please try again in a moment.",
+        "network": "Unable to reach the server. Check your internet connection.",
+        "timeout": "The request took too long to respond.",
+        "generic": "Something went wrong. Please try again."
+      }
+    }
   },
   "updates": {
     "title": "تحديثات البرامج الثابتة للأجهزة",
@@ -391,15 +551,154 @@
       "updateAvailable": "التحديث متاح",
       "upToDate": "محدث",
       "pending": "قيد الانتظار"
+    },
+    "eyebrow": "EauSure ? Updates",
+    "actions": {
+      "check": "Check Updates"
+    },
+    "metrics": {
+      "totalDevices": "Total Devices"
+    },
+    "sections": {
+      "releases": "Releases",
+      "status": "Firmware Update Status"
+    },
+    "sample": {
+      "todayAt": "Today, {time}",
+      "yesterdayAt": "Yesterday, {time}"
     }
   },
   "devices": {
     "title": "إدارة الأجهزة",
-    "description": "إدارة أجهزتك ومستشعرات إنترنت الأشياء"
+    "description": "إدارة أجهزتك ومستشعرات إنترنت الأشياء",
+    "eyebrow": "EauSure ? Devices",
+    "actions": {
+      "refresh": "Refresh devices",
+      "measure": "Measure",
+      "measuring": "Measuring...",
+      "retry": "Retry"
+    },
+    "metrics": {
+      "connected": "Connected",
+      "gateways": "Gateways",
+      "firmware": "Firmware Versions",
+      "signal": "Signal"
+    },
+    "labels": {
+      "linked": "linked",
+      "versions": "versions",
+      "average": "average"
+    },
+    "sections": {
+      "monitoring": "Monitoring",
+      "nodes": "Node Management"
+    },
+    "states": {
+      "loading": "Loading devices...",
+      "noData": "No data",
+      "empty": "No Devices Configured",
+      "emptyDescription": "Pair nodes with a linked gateway to start managing devices.",
+      "never": "Never"
+    },
+    "columns": {
+      "node": "Node",
+      "gateway": "Gateway",
+      "status": "Status",
+      "firmware": "Firmware",
+      "signal": "Signal",
+      "lastSeen": "Last seen",
+      "actions": "Actions"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "errors": {
+      "load": "Failed to load devices.",
+      "measure": "Failed to trigger measurement.",
+      "api": {
+        "badRequest": "The request could not be completed. Please check your filters and try again.",
+        "sessionExpired": "Your session has expired. Please sign in again.",
+        "forbidden": "You don't have permission to access this data.",
+        "notFound": "No data found for your account.",
+        "rateLimited": "Too many requests. Please wait a moment and try again.",
+        "server": "The server encountered an error. Please try again later.",
+        "unavailable": "The service is temporarily unavailable. Please try again in a moment.",
+        "network": "Unable to reach the server. Check your internet connection.",
+        "timeout": "The request took too long to respond.",
+        "generic": "Something went wrong. Please try again."
+      }
+    },
+    "toasts": {
+      "measureQueued": "Measurement request sent."
+    }
   },
   "gateway": {
     "title": "البوابة",
-    "description": "إدارة اتصال بوابة LoRaWAN لديك"
+    "description": "إدارة اتصال بوابة LoRaWAN لديك",
+    "eyebrow": "EauSure ? Gateway",
+    "metrics": {
+      "total": "Total Gateways",
+      "online": "Online",
+      "connectedNodes": "Connected Nodes",
+      "averageRssi": "Average RSSI"
+    },
+    "actions": {
+      "refresh": "Refresh gateways",
+      "retry": "Retry"
+    },
+    "states": {
+      "loading": "Loading gateways...",
+      "noData": "No data",
+      "empty": "No Gateways Configured",
+      "emptyDescription": "Link a gateway to display connectivity, nodes, signal, and configuration.",
+      "never": "Never",
+      "emptyNodes": "No nodes paired with this gateway yet."
+    },
+    "sections": {
+      "infrastructure": "Infrastructure",
+      "gateways": "Gateways",
+      "config": "Gateway Config",
+      "nodes": "Nodes"
+    },
+    "columns": {
+      "gateway": "Gateway",
+      "status": "Status",
+      "signal": "Signal",
+      "lastSeen": "Last seen"
+    },
+    "status": {
+      "online": "Online",
+      "offline": "Offline",
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "config": {
+      "measureInterval": "Measure interval",
+      "shakeEnabled": "Shake detection",
+      "shakeThreshold": "Shake threshold",
+      "units": "Units"
+    },
+    "common": {
+      "yes": "Yes",
+      "no": "No"
+    },
+    "errors": {
+      "load": "Failed to load gateways.",
+      "loadNodes": "Failed to load gateway nodes.",
+      "api": {
+        "badRequest": "The request could not be completed. Please check your filters and try again.",
+        "sessionExpired": "Your session has expired. Please sign in again.",
+        "forbidden": "You don't have permission to access this data.",
+        "notFound": "No data found for your account.",
+        "rateLimited": "Too many requests. Please wait a moment and try again.",
+        "server": "The server encountered an error. Please try again later.",
+        "unavailable": "The service is temporarily unavailable. Please try again in a moment.",
+        "network": "Unable to reach the server. Check your internet connection.",
+        "timeout": "The request took too long to respond.",
+        "generic": "Something went wrong. Please try again."
+      }
+    }
   },
   "superviseSystem": {
     "title": "الإشراف على النظام",
@@ -577,7 +876,33 @@
       "send": "إرسال",
       "agentName": "وكيل الدعم",
       "you": "أنت",
-      "empty": "ابدأ المحادثة بإرسال رسالة."
+      "empty": "ابدأ المحادثة بإرسال رسالة.",
+      "requestAcceptedHint": "Support Agent will respond when your request is accepted.",
+      "requestTitle": "Request a live chat",
+      "requestDescription": "Enter a short subject or reason so Support Agent can route your request.",
+      "reasonPlaceholder": "Example: Sensor readings are inconsistent after reconnecting the gateway",
+      "submitRequest": "Submit Request",
+      "beforeStart": "Before you start",
+      "queueHint": "Live chat is queued in the order requests are received.",
+      "filterHint": "Bad words are filtered before messages are sent.",
+      "ticketFallbackHint": "You can continue using tickets if the chat is paused or ended.",
+      "reasonSubject": "Reason / Subject",
+      "statusWaitingAgent": "Waiting for Support Agent",
+      "statusConnected": "Support Agent is connected",
+      "statusSuspended": "Chat suspended",
+      "statusEnded": "Chat ended",
+      "adminTyping": "Admin is typing...",
+      "queueEmpty": "Your request is in the queue. Messages will appear once Support Agent accepts it.",
+      "startConversation": "Start the conversation with Support Agent.",
+      "statusTitle": "Live chat status",
+      "waitingDescription": "Support Agent has not accepted this chat yet.",
+      "suspendedDescription": "Messaging is paused until Support Agent resumes the chat.",
+      "endedDescription": "This conversation has ended.",
+      "activeDescription": "You can send messages now.",
+      "messageTitle": "Message",
+      "lockedHint": "This chat is locked by Support Agent.",
+      "typingSharedHint": "Typing is shared with Support Agent.",
+      "acceptedOnlyHint": "Messages can only be sent after the chat is accepted."
     },
     "adminChat": {
       "title": "محادثات المشغلين",
